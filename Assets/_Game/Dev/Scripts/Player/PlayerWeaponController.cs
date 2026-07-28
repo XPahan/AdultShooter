@@ -10,13 +10,15 @@ namespace SexShot.Dev.Player
     {
         [SerializeField] private PlayerDefinition _definition;
         [SerializeField] private AmmoInventory _ammoInventory;
-        [SerializeField] private Transform _muzzle;
         [SerializeField] private GameObject[] _weaponModels;
 
         private bool _fireHeld;
         private bool _inputEnabled = true;
         private float _nextFireTime;
         private int _activeIndex;
+        private Transform _muzzle;
+        private Transform _muzzleFlashPoint;
+        private Transform _shellEjectPoint;
 
         public WeaponDefinition ActiveWeapon
         {
@@ -30,6 +32,11 @@ namespace SexShot.Dev.Player
         }
 
         public AmmoInventory AmmoInventory => _ammoInventory;
+
+        private void Awake()
+        {
+            UpdateWeaponFirePoints();
+        }
 
         public void SetInputEnabled(bool enabled)
         {
@@ -96,6 +103,45 @@ namespace SexShot.Dev.Player
                     _weaponModels[i].SetActive(i == _activeIndex);
                 }
             }
+
+            UpdateWeaponFirePoints();
+        }
+
+        private void UpdateWeaponFirePoints()
+        {
+            _muzzle = null;
+            _muzzleFlashPoint = null;
+            _shellEjectPoint = null;
+
+            var model = GetActiveWeaponModel();
+            if (model == null)
+            {
+                return;
+            }
+
+            _muzzle = model.transform.Find("Muzzle");
+            _muzzleFlashPoint = model.transform.Find("MuzzleFlash");
+            _shellEjectPoint = model.transform.Find("ShellEject");
+
+            if (_muzzleFlashPoint == null)
+            {
+                _muzzleFlashPoint = _muzzle;
+            }
+
+            if (_shellEjectPoint == null)
+            {
+                _shellEjectPoint = _muzzle;
+            }
+        }
+
+        private GameObject GetActiveWeaponModel()
+        {
+            if (_weaponModels == null || _activeIndex < 0 || _activeIndex >= _weaponModels.Length)
+            {
+                return null;
+            }
+
+            return _weaponModels[_activeIndex];
         }
 
         private void TryFire()
@@ -122,16 +168,57 @@ namespace SexShot.Dev.Player
                 return;
             }
 
+            SpawnMuzzleFlash(weapon);
+            SpawnShell(weapon);
+
             for (var i = 0; i < weapon.PelletsPerShot; i++)
             {
                 var direction = ApplySpread(_muzzle.forward, weapon.SpreadDegrees);
                 var instance = Instantiate(weapon.ProjectilePrefab, _muzzle.position, Quaternion.LookRotation(direction));
-                instance.GetComponent<Projectile>().Launch(
+                var projectile = instance.GetComponent<Projectile>();
+                if (projectile == null)
+                {
+                    continue;
+                }
+
+                projectile.Launch(
                     direction,
                     weapon.ProjectileSpeed,
                     weapon.Damage,
-                    DamageTeam.Player);
+                    DamageTeam.Player,
+                    weapon.ImpactPrefab);
             }
+        }
+
+        private void SpawnMuzzleFlash(WeaponDefinition weapon)
+        {
+            if (weapon.MuzzleFlashPrefab == null)
+            {
+                return;
+            }
+
+            if (_muzzleFlashPoint == null)
+            {
+                return;
+            }
+
+            var flash = Instantiate(weapon.MuzzleFlashPrefab, _muzzleFlashPoint.position, _muzzleFlashPoint.rotation);
+            flash.transform.localScale = Vector3.one * weapon.MuzzleFlashScale;
+        }
+
+        private void SpawnShell(WeaponDefinition weapon)
+        {
+            if (!weapon.EjectShells || weapon.ShellPrefab == null)
+            {
+                return;
+            }
+
+            if (_shellEjectPoint == null)
+            {
+                return;
+            }
+
+            Instantiate(weapon.ShellPrefab, _shellEjectPoint.position, _shellEjectPoint.rotation);
         }
 
         private static Vector3 ApplySpread(Vector3 forward, float spreadDegrees)

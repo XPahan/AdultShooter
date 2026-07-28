@@ -13,7 +13,16 @@ namespace SexShot.Dev.Editor
         {
             ("Assets/DemonGirlSuccubus", DevMaterialsRoot + "/DemonGirlSuccubus"),
             ("Assets/Low Poly Weapons VOL.1", DevMaterialsRoot + "/LowPolyWeapons"),
-            ("Assets/EffectCore", DevMaterialsRoot + "/EffectCore")
+            ("Assets/EffectCore", DevMaterialsRoot + "/EffectCore"),
+            ("Assets/Cemetery Kit V1.25", DevMaterialsRoot + "/CemeteryKit"),
+            ("Assets/(P&W)Temple_Edition", DevMaterialsRoot + "/TempleEdition")
+        };
+
+        private static readonly string[] InPlaceUrpPackRoots =
+        {
+            "Assets/EffectCore",
+            "Assets/Cemetery Kit V1.25",
+            "Assets/(P&W)Temple_Edition"
         };
 
         [MenuItem("SexShot/Dev/Build URP Material Copies")]
@@ -27,6 +36,38 @@ namespace SexShot.Dev.Editor
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("SexShot: URP material copies built under Assets/_Game/Dev.");
+        }
+
+        [MenuItem("SexShot/Dev/Convert EffectCore To URP")]
+        public static void ConvertEffectCoreToUrpInPlace()
+        {
+            ConvertPackToUrpInPlace("Assets/EffectCore");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("SexShot: EffectCore materials converted to URP in place.");
+        }
+
+        [MenuItem("SexShot/Dev/Convert Environment Packs To URP")]
+        public static void ConvertEnvironmentPacksToUrpInPlace()
+        {
+            ConvertPackToUrpInPlace("Assets/Cemetery Kit V1.25");
+            ConvertPackToUrpInPlace("Assets/(P&W)Temple_Edition");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("SexShot: Cemetery Kit and Temple Edition materials converted to URP in place.");
+        }
+
+        [MenuItem("SexShot/Dev/Convert All Imported Packs To URP")]
+        public static void ConvertAllImportedPacksToUrpInPlace()
+        {
+            foreach (var packRoot in InPlaceUrpPackRoots)
+            {
+                ConvertPackToUrpInPlace(packRoot);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("SexShot: All imported pack materials converted to URP in place.");
         }
 
         public static Material CreateUrpLitMaterial(string path, Color color, Texture mainTexture = null)
@@ -108,6 +149,42 @@ namespace SexShot.Dev.Editor
             return prefab;
         }
 
+        private static void ConvertPackToUrpInPlace(string sourceRoot)
+        {
+            if (!AssetDatabase.IsValidFolder(sourceRoot))
+            {
+                return;
+            }
+
+            var converted = 0;
+            var guids = AssetDatabase.FindAssets("t:Material", new[] { sourceRoot });
+            foreach (var guid in guids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                if (path.EndsWith(".ttf", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+                if (material == null)
+                {
+                    continue;
+                }
+
+                var before = material.shader != null ? material.shader.name : string.Empty;
+                ConvertCopyToUrp(material);
+                var after = material.shader != null ? material.shader.name : string.Empty;
+                if (before != after || after == "Universal Render Pipeline/Particles/Unlit")
+                {
+                    converted++;
+                    EditorUtility.SetDirty(material);
+                }
+            }
+
+            Debug.Log($"SexShot: converted {converted} materials under {sourceRoot}.");
+        }
+
         private static void BuildPackCopies(string sourceRoot, string targetRoot)
         {
             if (!AssetDatabase.IsValidFolder(sourceRoot))
@@ -172,33 +249,59 @@ namespace SexShot.Dev.Editor
         private static void ConvertCopyToUrp(Material material)
         {
             var shaderName = material.shader != null ? material.shader.name : string.Empty;
+            if (shaderName == "Universal Render Pipeline/Particles/Unlit")
+            {
+                FixUrpParticleMaterial(material);
+                return;
+            }
+
             if (shaderName.Contains("Universal Render Pipeline") || shaderName.StartsWith("Shader Graphs/"))
             {
                 return;
             }
 
-            if (shaderName == "Standard" || shaderName.StartsWith("Legacy Shaders/") || shaderName == "Unlit/Color")
+            if (shaderName == "Standard" || shaderName == "Standard (Specular setup)"
+                || shaderName.StartsWith("Legacy Shaders/") || shaderName == "Unlit/Color"
+                || shaderName == "Hidden/InternalErrorShader")
             {
-                ConvertStandardToUrpLit(material);
+                ConvertStandardToUrpLit(material, shaderName);
                 return;
             }
 
             if (shaderName.StartsWith("Mobile/Particles/") || shaderName.StartsWith("Particles/"))
             {
                 ConvertParticleToUrp(material, shaderName);
+                return;
+            }
+
+            if (shaderName.StartsWith("Unlit/"))
+            {
+                ConvertUnlitToUrp(material, shaderName);
+                return;
+            }
+
+            if (material.HasProperty("_TintColor") || material.HasProperty("_InvFade"))
+            {
+                ConvertParticleToUrp(material, shaderName);
             }
         }
 
-        private static void ConvertStandardToUrpLit(Material material)
+        private static void ConvertStandardToUrpLit(Material material, string shaderName = "Standard")
         {
             var mainTex = material.HasProperty("_MainTex") ? material.GetTexture("_MainTex") : null;
             var color = material.HasProperty("_Color") ? material.GetColor("_Color") : Color.white;
             var bump = material.HasProperty("_BumpMap") ? material.GetTexture("_BumpMap") : null;
             var metallic = material.HasProperty("_Metallic") ? material.GetFloat("_Metallic") : 0f;
             var smoothness = material.HasProperty("_Glossiness") ? material.GetFloat("_Glossiness") : 0.5f;
+            if (material.HasProperty("_Shininess"))
+            {
+                smoothness = Mathf.Clamp01(material.GetFloat("_Shininess"));
+            }
+
             var metallicGloss = material.HasProperty("_MetallicGlossMap") ? material.GetTexture("_MetallicGlossMap") : null;
             var emissionEnabled = material.IsKeywordEnabled("_EMISSION");
             var emissionColor = material.HasProperty("_EmissionColor") ? material.GetColor("_EmissionColor") : Color.black;
+            var isTransparent = shaderName.Contains("Transparent") || color.a < 0.999f;
 
             material.shader = GetUrpLitShader();
             material.SetColor("_BaseColor", color);
@@ -226,24 +329,81 @@ namespace SexShot.Dev.Editor
                 material.SetColor("_EmissionColor", emissionColor);
                 material.EnableKeyword("_EMISSION");
             }
+
+            if (isTransparent)
+            {
+                material.SetFloat("_Surface", 1f);
+                material.SetFloat("_Blend", 0f);
+                material.SetFloat("_ZWrite", 0f);
+                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                material.SetOverrideTag("RenderType", "Transparent");
+                material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            }
+        }
+
+        private static void FixUrpParticleMaterial(Material material)
+        {
+            var isAlphaBlend = material.name.IndexOf("alphablend", System.StringComparison.OrdinalIgnoreCase) >= 0
+                || material.name.IndexOf("alphaBlend", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
+            material.SetFloat("_Surface", 1f);
+            material.SetFloat("_Blend", isAlphaBlend ? 0f : 2f);
+            material.SetFloat("_ZWrite", 0f);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            material.SetFloat("_SrcBlend", 5f);
+            material.SetFloat("_DstBlend", isAlphaBlend ? 10f : 1f);
         }
 
         private static void ConvertParticleToUrp(Material material, string shaderName)
         {
             var mainTex = material.HasProperty("_MainTex") ? material.GetTexture("_MainTex") : null;
-            var tint = material.HasProperty("_TintColor")
-                ? material.GetColor("_TintColor")
-                : material.HasProperty("_Color") ? material.GetColor("_Color") : Color.white;
+            var color = material.HasProperty("_Color") ? material.GetColor("_Color") : Color.white;
+            var tint = material.HasProperty("_TintColor") ? material.GetColor("_TintColor") : Color.white;
+            var isAlphaBlend = shaderName.Contains("Alpha Blended")
+                || material.IsKeywordEnabled("_ALPHABLEND_ON")
+                || material.name.IndexOf("alphablend", System.StringComparison.OrdinalIgnoreCase) >= 0
+                || material.name.IndexOf("alphaBlend", System.StringComparison.OrdinalIgnoreCase) >= 0;
 
             material.shader = GetUrpParticleUnlitShader();
-            material.SetColor("_BaseColor", tint);
+            material.SetColor("_BaseColor", color * tint);
             if (mainTex != null)
             {
                 material.SetTexture("_BaseMap", mainTex);
             }
 
             material.SetFloat("_Surface", 1f);
-            material.SetFloat("_Blend", shaderName.Contains("Additive") ? 2f : 0f);
+            material.SetFloat("_Blend", isAlphaBlend ? 0f : 2f);
+            material.SetFloat("_ZWrite", 0f);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            material.SetFloat("_SrcBlend", 5f);
+            material.SetFloat("_DstBlend", isAlphaBlend ? 10f : 1f);
+        }
+
+        private static void ConvertUnlitToUrp(Material material, string shaderName)
+        {
+            var mainTex = material.HasProperty("_MainTex") ? material.GetTexture("_MainTex") : null;
+            var color = material.HasProperty("_Color") ? material.GetColor("_Color") : Color.white;
+            var isTransparent = shaderName.Contains("Transparent") || shaderName.Contains("Fade");
+
+            material.shader = isTransparent ? GetUrpUnlitShader() : GetUrpLitShader();
+            material.SetColor("_BaseColor", color);
+            if (mainTex != null)
+            {
+                material.SetTexture("_BaseMap", mainTex);
+            }
+
+            if (isTransparent)
+            {
+                material.SetFloat("_Surface", 1f);
+                material.SetFloat("_Blend", 0f);
+                material.SetFloat("_ZWrite", 0f);
+                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            }
         }
 
         private static Shader GetUrpLitShader()
@@ -254,6 +414,11 @@ namespace SexShot.Dev.Editor
         private static Shader GetUrpParticleUnlitShader()
         {
             return Shader.Find("Universal Render Pipeline/Particles/Unlit");
+        }
+
+        private static Shader GetUrpUnlitShader()
+        {
+            return Shader.Find("Universal Render Pipeline/Unlit");
         }
 
         private static void EnsureFolderForAsset(string assetPath)

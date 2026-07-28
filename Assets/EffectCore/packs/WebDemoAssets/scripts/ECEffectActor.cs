@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class ECEffectActor : MonoBehaviour {
 
@@ -36,16 +37,23 @@ public class ECEffectActor : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
-        if (Input.GetKeyDown(KeyCode.Q))
+        var keyboard = Keyboard.current;
+        var mouse = Mouse.current;
+        if (keyboard == null || mouse == null)
+        {
+            return;
+        }
+
+        if (keyboard.qKey.wasPressedThisFrame)
         {
             Switch(-1);
         }
-        if (Input.GetButtonDown("Fire2") || Input.GetKeyDown(KeyCode.E))
+        if (mouse.rightButton.wasPressedThisFrame || keyboard.eKey.wasPressedThisFrame)
         {
             Switch(1);
         }
 
-	    if(Input.GetButtonDown("Fire1"))
+	    if(mouse.leftButton.wasPressedThisFrame)
         {
             Fire();
         }
