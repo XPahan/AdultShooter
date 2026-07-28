@@ -156,42 +156,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _definition: {fileID: 11400000, guid: dc5af11971789794dadf105d81c18403, type: 2}
   _ammoInventory: {fileID: 2868287762959080931}
-  _muzzle: {fileID: 2575463985005275806}
   _weaponModels:
   - {fileID: 8917369867179090147}
   - {fileID: 802927129043463890}
-  - {fileID: 7868633984216375799}
---- !u!1 &1297969119627321389
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2575463985005275806}
-  m_Layer: 0
-  m_Name: Muzzle
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2575463985005275806
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1297969119627321389}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.2, y: -0.1, z: 0.7}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 6306225122597246798}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  - {fileID: 7220228648092121431}
 --- !u!1 &2244689402754226684
 GameObject:
   m_ObjectHideFlags: 0
@@ -278,7 +246,6 @@ Transform:
   m_Children:
   - {fileID: 8707328466130827944}
   - {fileID: 6858294353539420585}
-  - {fileID: 2575463985005275806}
   m_Father: {fileID: 8893979925450963462}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4576744796693666631
@@ -312,7 +279,7 @@ Transform:
   m_Children:
   - {fileID: 8923673517100302583}
   - {fileID: 806116794624251764}
-  - {fileID: 7871921089656817895}
+  - {fileID: 7223432809120993351}
   m_Father: {fileID: 6306225122597246798}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7695731575267660825
@@ -580,12 +547,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5650ed491286cd84caa954885743f735, type: 3}
---- !u!1 &7868633984216375799 stripped
+--- !u!1 &7220228648092121431 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 9128529116237972376, guid: 5650ed491286cd84caa954885743f735, type: 3}
   m_PrefabInstance: {fileID: 1917525664925088463}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &7871921089656817895 stripped
+--- !u!4 &7223432809120993351 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9125034674471758472, guid: 5650ed491286cd84caa954885743f735, type: 3}
   m_PrefabInstance: {fileID: 1917525664925088463}

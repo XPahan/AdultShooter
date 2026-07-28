@@ -17,6 +17,7 @@ namespace SexShot.Dev.Combat
         private Rigidbody _rigidbody;
         private SphereCollider _sphereCollider;
         private Vector3 _previousPosition;
+        private GameObject _impactPrefab;
 
         private void Awake()
         {
@@ -24,12 +25,13 @@ namespace SexShot.Dev.Combat
             _sphereCollider = GetComponent<SphereCollider>();
         }
 
-        public void Launch(Vector3 direction, float speed, float damage, DamageTeam team)
+        public void Launch(Vector3 direction, float speed, float damage, DamageTeam team, GameObject impactPrefab = null)
         {
             _direction = direction.normalized;
             _speed = speed;
             _damage = damage;
             _team = team;
+            _impactPrefab = impactPrefab;
             _hasHit = false;
             _previousPosition = transform.position;
             if (_direction.sqrMagnitude > 0.0001f)
@@ -64,7 +66,7 @@ namespace SexShot.Dev.Combat
                     distance,
                     ~0,
                     QueryTriggerInteraction.Collide)
-                && TryHit(hit.collider))
+                && TryHit(hit.collider, hit.point, hit.normal))
             {
                 return;
             }
@@ -76,10 +78,10 @@ namespace SexShot.Dev.Combat
 
         private void OnTriggerEnter(Collider other)
         {
-            TryHit(other);
+            TryHit(other, transform.position, -_direction);
         }
 
-        private bool TryHit(Collider other)
+        private bool TryHit(Collider other, Vector3 hitPoint, Vector3 hitNormal)
         {
             if (_hasHit || other == null)
             {
@@ -95,13 +97,13 @@ namespace SexShot.Dev.Combat
                 }
 
                 damageable.TakeDamage(_damage, _team);
-                DestroyProjectile();
+                DestroyProjectile(hitPoint, hitNormal);
                 return true;
             }
 
             if (!other.isTrigger)
             {
-                DestroyProjectile();
+                DestroyProjectile(hitPoint, hitNormal);
                 return true;
             }
 
@@ -120,10 +122,23 @@ namespace SexShot.Dev.Combat
             return _sphereCollider.radius * maxScale;
         }
 
-        private void DestroyProjectile()
+        private void DestroyProjectile(Vector3 hitPoint, Vector3 hitNormal)
         {
             _hasHit = true;
+            SpawnImpact(hitPoint, hitNormal);
             Destroy(gameObject);
+        }
+
+        private void SpawnImpact(Vector3 hitPoint, Vector3 hitNormal)
+        {
+            if (_impactPrefab == null)
+            {
+                return;
+            }
+
+            var normal = hitNormal.sqrMagnitude > 0.0001f ? hitNormal.normalized : -_direction;
+            var rotation = Quaternion.FromToRotation(Vector3.forward, normal);
+            Instantiate(_impactPrefab, hitPoint, rotation);
         }
     }
 }

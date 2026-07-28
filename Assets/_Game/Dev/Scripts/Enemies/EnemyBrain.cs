@@ -118,15 +118,35 @@ namespace SexShot.Dev.Enemies
                 _animator.SetTrigger(AttackHash);
             }
 
+            SpawnMuzzleFlash();
+
             var targetPoint = _player.position + Vector3.up * _definition.AimHeight;
-            var origin = _muzzle.position;
+            var origin = _muzzle != null ? _muzzle.position : transform.position + Vector3.up * _definition.AimHeight;
             var direction = (targetPoint - origin).normalized;
             var instance = Instantiate(_definition.ProjectilePrefab, origin, Quaternion.LookRotation(direction));
-            instance.GetComponent<Projectile>().Launch(
+            var projectile = instance.GetComponent<Projectile>();
+            if (projectile == null)
+            {
+                return;
+            }
+
+            projectile.Launch(
                 direction,
                 _definition.ProjectileSpeed,
                 _definition.ProjectileDamage,
-                DamageTeam.Enemy);
+                DamageTeam.Enemy,
+                _definition.ImpactPrefab);
+        }
+
+        private void SpawnMuzzleFlash()
+        {
+            if (_definition.MuzzleFlashPrefab == null || _muzzle == null)
+            {
+                return;
+            }
+
+            var flash = Instantiate(_definition.MuzzleFlashPrefab, _muzzle.position, _muzzle.rotation);
+            flash.transform.localScale = Vector3.one * _definition.MuzzleFlashScale;
         }
 
         private void SetSpeed(float speed)
