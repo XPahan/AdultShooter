@@ -9731,8 +9731,8 @@ GameObject:
   - component: {fileID: 54212628334827884}
   - component: {fileID: 199821393595439728}
   - component: {fileID: 198816427586534772}
-  - component: {fileID: 4479548827826101098}
-  - component: {fileID: 6613208443025355360}
+  - component: {fileID: 6296933652321414500}
+  - component: {fileID: 8236006607456998149}
   m_Layer: 0
   m_Name: PistolBlazingRedProjectile
   m_TagString: Untagged
@@ -14713,7 +14713,7 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     vectorLabel1_3: W
---- !u!135 &4479548827826101098
+--- !u!135 &6296933652321414500
 SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -14734,7 +14734,7 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.12
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &6613208443025355360
+--- !u!114 &8236006607456998149
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

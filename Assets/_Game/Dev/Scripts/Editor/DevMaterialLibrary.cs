@@ -13,7 +13,16 @@ namespace SexShot.Dev.Editor
         {
             ("Assets/DemonGirlSuccubus", DevMaterialsRoot + "/DemonGirlSuccubus"),
             ("Assets/Low Poly Weapons VOL.1", DevMaterialsRoot + "/LowPolyWeapons"),
-            ("Assets/EffectCore", DevMaterialsRoot + "/EffectCore")
+            ("Assets/EffectCore", DevMaterialsRoot + "/EffectCore"),
+            ("Assets/Cemetery Kit V1.25", DevMaterialsRoot + "/CemeteryKit"),
+            ("Assets/(P&W)Temple_Edition", DevMaterialsRoot + "/TempleEdition")
+        };
+
+        private static readonly string[] InPlaceUrpPackRoots =
+        {
+            "Assets/EffectCore",
+            "Assets/Cemetery Kit V1.25",
+            "Assets/(P&W)Temple_Edition"
         };
 
         [MenuItem("SexShot/Dev/Build URP Material Copies")]
@@ -36,6 +45,29 @@ namespace SexShot.Dev.Editor
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("SexShot: EffectCore materials converted to URP in place.");
+        }
+
+        [MenuItem("SexShot/Dev/Convert Environment Packs To URP")]
+        public static void ConvertEnvironmentPacksToUrpInPlace()
+        {
+            ConvertPackToUrpInPlace("Assets/Cemetery Kit V1.25");
+            ConvertPackToUrpInPlace("Assets/(P&W)Temple_Edition");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("SexShot: Cemetery Kit and Temple Edition materials converted to URP in place.");
+        }
+
+        [MenuItem("SexShot/Dev/Convert All Imported Packs To URP")]
+        public static void ConvertAllImportedPacksToUrpInPlace()
+        {
+            foreach (var packRoot in InPlaceUrpPackRoots)
+            {
+                ConvertPackToUrpInPlace(packRoot);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("SexShot: All imported pack materials converted to URP in place.");
         }
 
         public static Material CreateUrpLitMaterial(string path, Color color, Texture mainTexture = null)
@@ -232,7 +264,7 @@ namespace SexShot.Dev.Editor
                 || shaderName.StartsWith("Legacy Shaders/") || shaderName == "Unlit/Color"
                 || shaderName == "Hidden/InternalErrorShader")
             {
-                ConvertStandardToUrpLit(material);
+                ConvertStandardToUrpLit(material, shaderName);
                 return;
             }
 
@@ -254,16 +286,22 @@ namespace SexShot.Dev.Editor
             }
         }
 
-        private static void ConvertStandardToUrpLit(Material material)
+        private static void ConvertStandardToUrpLit(Material material, string shaderName = "Standard")
         {
             var mainTex = material.HasProperty("_MainTex") ? material.GetTexture("_MainTex") : null;
             var color = material.HasProperty("_Color") ? material.GetColor("_Color") : Color.white;
             var bump = material.HasProperty("_BumpMap") ? material.GetTexture("_BumpMap") : null;
             var metallic = material.HasProperty("_Metallic") ? material.GetFloat("_Metallic") : 0f;
             var smoothness = material.HasProperty("_Glossiness") ? material.GetFloat("_Glossiness") : 0.5f;
+            if (material.HasProperty("_Shininess"))
+            {
+                smoothness = Mathf.Clamp01(material.GetFloat("_Shininess"));
+            }
+
             var metallicGloss = material.HasProperty("_MetallicGlossMap") ? material.GetTexture("_MetallicGlossMap") : null;
             var emissionEnabled = material.IsKeywordEnabled("_EMISSION");
             var emissionColor = material.HasProperty("_EmissionColor") ? material.GetColor("_EmissionColor") : Color.black;
+            var isTransparent = shaderName.Contains("Transparent") || color.a < 0.999f;
 
             material.shader = GetUrpLitShader();
             material.SetColor("_BaseColor", color);
@@ -290,6 +328,16 @@ namespace SexShot.Dev.Editor
             {
                 material.SetColor("_EmissionColor", emissionColor);
                 material.EnableKeyword("_EMISSION");
+            }
+
+            if (isTransparent)
+            {
+                material.SetFloat("_Surface", 1f);
+                material.SetFloat("_Blend", 0f);
+                material.SetFloat("_ZWrite", 0f);
+                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                material.SetOverrideTag("RenderType", "Transparent");
+                material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
             }
         }
 

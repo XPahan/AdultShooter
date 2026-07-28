@@ -13,8 +13,8 @@ GameObject:
   - component: {fileID: 54453457801900860}
   - component: {fileID: 199822515480979474}
   - component: {fileID: 198737689383679476}
-  - component: {fileID: 912866951588945771}
-  - component: {fileID: 4364250859849025498}
+  - component: {fileID: 5178875548843669794}
+  - component: {fileID: 5859631556466735079}
   m_Layer: 0
   m_Name: RifleGoldFireProjectile
   m_TagString: Untagged
@@ -4995,7 +4995,7 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     vectorLabel1_3: W
---- !u!135 &912866951588945771
+--- !u!135 &5178875548843669794
 SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5016,7 +5016,7 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.12
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &4364250859849025498
+--- !u!114 &5859631556466735079
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

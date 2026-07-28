@@ -4728,8 +4728,8 @@ GameObject:
   - component: {fileID: 199187720539646952}
   - component: {fileID: 198228151580939694}
   - component: {fileID: 54453457801900860}
-  - component: {fileID: 218394695038576152}
-  - component: {fileID: 3087672272941098307}
+  - component: {fileID: 7139513991925445904}
+  - component: {fileID: 2162748658277761718}
   m_Layer: 0
   m_Name: EnemyPlasmaPurpleHazeProjectile
   m_TagString: Untagged
@@ -9744,7 +9744,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 2
---- !u!135 &218394695038576152
+--- !u!135 &7139513991925445904
 SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -9765,7 +9765,7 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.12
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &3087672272941098307
+--- !u!114 &2162748658277761718
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

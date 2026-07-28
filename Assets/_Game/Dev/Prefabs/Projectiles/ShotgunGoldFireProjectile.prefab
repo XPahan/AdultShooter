@@ -9731,8 +9731,8 @@ GameObject:
   - component: {fileID: 54212628334827884}
   - component: {fileID: 199866926003231802}
   - component: {fileID: 198971252353732916}
-  - component: {fileID: 3250401177768399298}
-  - component: {fileID: 2498867376503726054}
+  - component: {fileID: 8586299061279119782}
+  - component: {fileID: 6591237175148316055}
   m_Layer: 0
   m_Name: ShotgunGoldFireProjectile
   m_TagString: Untagged
@@ -14713,7 +14713,7 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     vectorLabel1_3: W
---- !u!135 &3250401177768399298
+--- !u!135 &8586299061279119782
 SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -14734,7 +14734,7 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.12
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &2498867376503726054
+--- !u!114 &6591237175148316055
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

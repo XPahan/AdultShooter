@@ -22,7 +22,7 @@ MonoBehaviour:
   _projectileSpeed: 55
   _startingAmmo: 60
   _ammoPerPickup: 10
-  _projectilePrefab: {fileID: 1238843893459588, guid: 0be03dd3b320e264dbbcf8356d6d6226, type: 3}
+  _projectilePrefab: {fileID: 1238843893459588, guid: d17ec4a818ecd644b9e25507cce8ed58, type: 3}
   _worldModelPrefab: {fileID: 9128529116237972376, guid: 5650ed491286cd84caa954885743f735, type: 3}
   _muzzleFlashPrefab: {fileID: 1000012903210382, guid: 01e91ba42e028824b86d47ee5f416589, type: 3}
   _muzzleFlashScale: 0.25
