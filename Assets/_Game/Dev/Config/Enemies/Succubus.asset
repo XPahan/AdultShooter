@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb29801c3fdfbd945aeda3ceafcc2441, type: 3}
+  m_Name: Succubus
+  m_EditorClassIdentifier: 
+  _displayName: Succubus
+  _maxHealth: 3
+  _staggerDuration: 0.35
+  _moveSpeed: 1.8
+  _turnSpeed: 8
+  _attackRange: 6
+  _attackCooldown: 2
+  _projectileDamage: 2
+  _projectileSpeed: 10
+  _aimHeight: 1.2
+  _deathDespawnDelay: 1.5
+  _projectilePrefab: {fileID: 441451815486176990, guid: 2575fa97405bd9d4790d3471443a1b08, type: 3}
