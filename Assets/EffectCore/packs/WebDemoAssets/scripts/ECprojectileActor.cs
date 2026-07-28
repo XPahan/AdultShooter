@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class ECprojectileActor : MonoBehaviour {
 
@@ -65,35 +66,49 @@ public class ECprojectileActor : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
-        //Movement
-        if(Input.GetButton("Horizontal"))
+        var keyboard = Keyboard.current;
+        var mouse = Mouse.current;
+        if (keyboard == null || mouse == null)
         {
-            if (Input.GetAxis("Horizontal") < 0)
-            {
-                gameObject.transform.Rotate(Vector3.up, -25 * Time.deltaTime);
-            }
-            else
-            {
-                gameObject.transform.Rotate(Vector3.up, 25 * Time.deltaTime);
-            }
+            return;
+        }
+
+        //Movement
+        var horizontal = 0f;
+        if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
+        {
+            horizontal -= 1f;
+        }
+        if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed)
+        {
+            horizontal += 1f;
+        }
+
+        if (horizontal < 0f)
+        {
+            gameObject.transform.Rotate(Vector3.up, -25 * Time.deltaTime);
+        }
+        else if (horizontal > 0f)
+        {
+            gameObject.transform.Rotate(Vector3.up, 25 * Time.deltaTime);
         }
 
         //BULLETS
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (keyboard.qKey.wasPressedThisFrame)
         {
             Switch(-1);
         }
-        if (Input.GetButtonDown("Fire2") || Input.GetKeyDown(KeyCode.E))
+        if (mouse.rightButton.wasPressedThisFrame || keyboard.eKey.wasPressedThisFrame)
         {
             Switch(1);
         }
 
-	    if(Input.GetButtonDown("Fire1"))
+	    if(mouse.leftButton.wasPressedThisFrame)
         {
             firing = true;
             Fire();
         }
-        if (Input.GetButtonUp("Fire1"))
+        if (mouse.leftButton.wasReleasedThisFrame)
         {
             firing = false;
             firingTimer = 0;

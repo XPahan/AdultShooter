@@ -23,6 +23,20 @@ namespace SexShot.Dev.Editor
         private const string WeaponsConfigRoot = ConfigRoot + "/Weapons";
         private const string MaterialsRoot = DevRoot + "/Materials";
         private const string AnimatorPath = DevRoot + "/Animators/Enemy.controller";
+        private const string EffectCoreBulletRoot =
+            "Assets/EffectCore/packs/StylizedProjectilePack1/prefabs/Bullet/Bullet_GoldFire_Template/Bullet_Small_Goldfire_Template";
+        private const string EffectCoreGoldFireMediumRoot =
+            "Assets/EffectCore/packs/StylizedProjectilePack1/prefabs/Bullet/Bullet_GoldFire_Template/Bullet_Medium_GoldFire_Template";
+        private const string EffectCoreGoldFireBigRoot =
+            "Assets/EffectCore/packs/StylizedProjectilePack1/prefabs/Bullet/Bullet_GoldFire_Template/Bullet_Big_GoldFire_Template";
+        private const string EffectCoreBlazingRedMediumRoot =
+            "Assets/EffectCore/packs/StylizedProjectilePack1/prefabs/Bullet/Bullet_BlazingRed/Bullet_Medium_BlazingRed";
+        private const string EffectCorePlasmaPurpleHazeMediumRoot =
+            "Assets/EffectCore/packs/StylizedProjectilePack1/prefabs/Plasma/Plasma_PurpleHaze/Plasma_Medium_PurpleHaze";
+        private const string EffectCoreShellPrefab =
+            "Assets/EffectCore/packs/StylizedProjectilePack1/prefabs/Bullet/shells/bulletShell_ParticleSystem.prefab";
+        private const string EffectCoreShotgunShellPrefab =
+            "Assets/EffectCore/packs/StylizedProjectilePack1/prefabs/Bullet/shells/shotgunShell_rigidBody.prefab";
 
         [MenuItem("SexShot/Dev/Wire Enemy Prefab References")]
         public static void WireEnemyPrefabMenu()
@@ -37,6 +51,31 @@ namespace SexShot.Dev.Editor
             WireEnemyPrefabReferences(PrefabRoot + "/Enemies/Enemy.prefab", definition);
             AssetDatabase.SaveAssets();
             Debug.Log("SexShot: Enemy prefab references wired.");
+        }
+
+        [MenuItem("SexShot/Dev/Wire Rifle GoldFire VFX")]
+        public static void WireRifleGoldFireVfxMenu()
+        {
+            WireCombatVfx();
+            AssetDatabase.SaveAssets();
+            Debug.Log("SexShot: Combat VFX wired for all weapons and enemies.");
+        }
+
+        [MenuItem("SexShot/Dev/Wire Combat VFX")]
+        public static void WireCombatVfxMenu()
+        {
+            WireCombatVfx();
+            AssetDatabase.SaveAssets();
+            Debug.Log("SexShot: Combat VFX wired for pistol, shotgun, rifle and enemies.");
+        }
+
+        [MenuItem("SexShot/Dev/Ensure Weapon Fire Points")]
+        public static void EnsureWeaponFirePointsMenu()
+        {
+            EnsureAllWeaponPrefabFirePoints();
+            CleanupLegacyPlayerFirePoints(PrefabRoot + "/Player/Player.prefab");
+            AssetDatabase.SaveAssets();
+            Debug.Log("SexShot: Muzzle, MuzzleFlash and ShellEject added to weapon prefabs.");
         }
 
         [MenuItem("SexShot/Dev/Setup Prototype Prefabs")]
@@ -104,6 +143,9 @@ namespace SexShot.Dev.Editor
                 ammoPickup: 2,
                 playerProjectile,
                 shotgunModel);
+            var rifleProjectile = CreateRifleGoldFireProjectile(
+                PrefabRoot + "/Projectiles/RifleGoldFireProjectile.prefab",
+                playerProjectileDef);
             var rifle = CreateWeaponAsset(
                 WeaponsConfigRoot + "/Rifle.asset",
                 WeaponId.Rifle,
@@ -116,8 +158,13 @@ namespace SexShot.Dev.Editor
                 speed: 55f,
                 startingAmmo: 60,
                 ammoPickup: 10,
-                playerProjectile,
-                rifleModel);
+                rifleProjectile,
+                rifleModel,
+                LoadEffectCorePrefab(EffectCoreBulletRoot + "/Bullet_GoldFire_Small_MuzzleFlare_Template.prefab"),
+                LoadEffectCorePrefab(EffectCoreBulletRoot + "/Bullet_GoldFire_Small_Impact_Template.prefab"),
+                LoadEffectCorePrefab(EffectCoreShellPrefab),
+                ejectShells: true,
+                muzzleFlashScale: 0.25f);
 
             CreateEnemyAnimator();
             var enemyDefinition = CreateEnemyDefinition(enemyProjectile);
@@ -366,7 +413,12 @@ namespace SexShot.Dev.Editor
             int startingAmmo,
             int ammoPickup,
             GameObject projectile,
-            GameObject worldModelPrefab)
+            GameObject worldModelPrefab,
+            GameObject muzzleFlashPrefab = null,
+            GameObject impactPrefab = null,
+            GameObject shellPrefab = null,
+            bool ejectShells = false,
+            float muzzleFlashScale = 1f)
         {
             var asset = AssetDatabase.LoadAssetAtPath<WeaponDefinition>(path);
             if (asset == null)
@@ -388,6 +440,11 @@ namespace SexShot.Dev.Editor
             so.FindProperty("_ammoPerPickup").intValue = ammoPickup;
             so.FindProperty("_projectilePrefab").objectReferenceValue = projectile;
             so.FindProperty("_worldModelPrefab").objectReferenceValue = worldModelPrefab;
+            so.FindProperty("_muzzleFlashPrefab").objectReferenceValue = muzzleFlashPrefab;
+            so.FindProperty("_muzzleFlashScale").floatValue = muzzleFlashScale;
+            so.FindProperty("_impactPrefab").objectReferenceValue = impactPrefab;
+            so.FindProperty("_shellPrefab").objectReferenceValue = shellPrefab;
+            so.FindProperty("_ejectShells").boolValue = ejectShells;
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(asset);
             return asset;
@@ -517,10 +574,6 @@ namespace SexShot.Dev.Editor
             var shotgunModel = AddWeaponModel(weaponSocket.transform, shotgunModelPrefab, "ShotgunModel", false);
             var rifleModel = AddWeaponModel(weaponSocket.transform, rifleModelPrefab, "RifleModel", false);
 
-            var muzzle = new GameObject("Muzzle");
-            muzzle.transform.SetParent(cameraPivot.transform);
-            muzzle.transform.localPosition = new Vector3(0.2f, -0.1f, 0.7f);
-
             var healthSo = new SerializedObject(health);
             healthSo.FindProperty("_maxHealth").floatValue = playerDefinition.MaxHealth;
             healthSo.ApplyModifiedPropertiesWithoutUndo();
@@ -548,7 +601,6 @@ namespace SexShot.Dev.Editor
             var weaponSo = new SerializedObject(weaponController);
             weaponSo.FindProperty("_definition").objectReferenceValue = playerDefinition;
             weaponSo.FindProperty("_ammoInventory").objectReferenceValue = ammoInventory;
-            weaponSo.FindProperty("_muzzle").objectReferenceValue = muzzle.transform;
             weaponSo.FindProperty("_weaponModels").arraySize = 3;
             weaponSo.FindProperty("_weaponModels").GetArrayElementAtIndex(0).objectReferenceValue = pistolModel;
             weaponSo.FindProperty("_weaponModels").GetArrayElementAtIndex(1).objectReferenceValue = shotgunModel;
@@ -998,6 +1050,282 @@ namespace SexShot.Dev.Editor
             var forwardOffset = capsule.radius * 0.35f;
             var heightOffset = capsule.height * 0.25f;
             return center + Vector3.up * heightOffset + Vector3.forward * forwardOffset;
+        }
+
+        private static void WireCombatVfx()
+        {
+            EnsureFolder(PrefabRoot + "/Projectiles");
+
+            var playerProjectileDefinition = AssetDatabase.LoadAssetAtPath<ProjectileDefinition>(
+                ConfigRoot + "/Projectiles/PlayerProjectile.asset");
+            var enemyProjectileDefinition = AssetDatabase.LoadAssetAtPath<ProjectileDefinition>(
+                ConfigRoot + "/Projectiles/EnemyProjectile.asset");
+
+            var pistolProjectile = CreateEffectCoreCombatProjectile(
+                EffectCoreBlazingRedMediumRoot + "/Bullet_BlazingRed_Medium_Projectile.prefab",
+                PrefabRoot + "/Projectiles/PistolBlazingRedProjectile.prefab",
+                playerProjectileDefinition);
+            var shotgunProjectile = CreateEffectCoreCombatProjectile(
+                EffectCoreGoldFireMediumRoot + "/Bullet_GoldFire_Medium_Projectile_Template.prefab",
+                PrefabRoot + "/Projectiles/ShotgunGoldFireProjectile.prefab",
+                playerProjectileDefinition);
+            var rifleProjectile = CreateEffectCoreCombatProjectile(
+                EffectCoreBulletRoot + "/Bullet_GoldFire_Small_Projectile_Template.prefab",
+                PrefabRoot + "/Projectiles/RifleGoldFireProjectile.prefab",
+                playerProjectileDefinition);
+            var enemyProjectile = CreateEffectCoreCombatProjectile(
+                EffectCorePlasmaPurpleHazeMediumRoot + "/Plasma_PurpleHaze_Medium_Projectile.prefab",
+                PrefabRoot + "/Projectiles/EnemyPlasmaPurpleHazeProjectile.prefab",
+                enemyProjectileDefinition);
+
+            WireWeaponVfx(
+                WeaponsConfigRoot + "/Pistol.asset",
+                pistolProjectile,
+                EffectCoreBlazingRedMediumRoot + "/Bullet_BlazingRed_Medium_MuzzleFlare.prefab",
+                EffectCoreBlazingRedMediumRoot + "/Bullet_BlazingRed_Medium_Impact.prefab",
+                EffectCoreShellPrefab,
+                ejectShells: true,
+                muzzleFlashScale: 0.3f);
+            WireWeaponVfx(
+                WeaponsConfigRoot + "/Shotgun.asset",
+                shotgunProjectile,
+                EffectCoreGoldFireBigRoot + "/Bullet_GoldFire_Big_MuzzleFlare_Template.prefab",
+                EffectCoreGoldFireMediumRoot + "/Bullet_GoldFire_Medium_Impact_Template.prefab",
+                EffectCoreShotgunShellPrefab,
+                ejectShells: true,
+                muzzleFlashScale: 0.22f);
+            WireWeaponVfx(
+                WeaponsConfigRoot + "/Rifle.asset",
+                rifleProjectile,
+                EffectCoreBulletRoot + "/Bullet_GoldFire_Small_MuzzleFlare_Template.prefab",
+                EffectCoreBulletRoot + "/Bullet_GoldFire_Small_Impact_Template.prefab",
+                EffectCoreShellPrefab,
+                ejectShells: true,
+                muzzleFlashScale: 0.25f);
+
+            var succubus = AssetDatabase.LoadAssetAtPath<EnemyDefinition>(ConfigRoot + "/Enemies/Succubus.asset");
+            if (succubus != null)
+            {
+                var so = new SerializedObject(succubus);
+                so.FindProperty("_projectilePrefab").objectReferenceValue = enemyProjectile;
+                so.FindProperty("_muzzleFlashPrefab").objectReferenceValue = LoadEffectCorePrefab(
+                    EffectCorePlasmaPurpleHazeMediumRoot + "/Plasma_PurpleHaze_Medium_MuzzleFlare.prefab");
+                so.FindProperty("_impactPrefab").objectReferenceValue = LoadEffectCorePrefab(
+                    EffectCorePlasmaPurpleHazeMediumRoot + "/Plasma_PurpleHaze_Medium_Impact.prefab");
+                so.FindProperty("_muzzleFlashScale").floatValue = 0.35f;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(succubus);
+            }
+
+            EnsureAllWeaponPrefabFirePoints();
+            CleanupLegacyPlayerFirePoints(PrefabRoot + "/Player/Player.prefab");
+        }
+
+        private static void WireWeaponVfx(
+            string weaponPath,
+            GameObject projectile,
+            string muzzleFlashPath,
+            string impactPath,
+            string shellPath,
+            bool ejectShells,
+            float muzzleFlashScale)
+        {
+            var weapon = AssetDatabase.LoadAssetAtPath<WeaponDefinition>(weaponPath);
+            if (weapon == null)
+            {
+                return;
+            }
+
+            var so = new SerializedObject(weapon);
+            so.FindProperty("_projectilePrefab").objectReferenceValue = projectile;
+            so.FindProperty("_muzzleFlashPrefab").objectReferenceValue = LoadEffectCorePrefab(muzzleFlashPath);
+            so.FindProperty("_impactPrefab").objectReferenceValue = LoadEffectCorePrefab(impactPath);
+            so.FindProperty("_shellPrefab").objectReferenceValue = LoadEffectCorePrefab(shellPath);
+            so.FindProperty("_ejectShells").boolValue = ejectShells;
+            so.FindProperty("_muzzleFlashScale").floatValue = muzzleFlashScale;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(weapon);
+        }
+
+        private static void WireRifleGoldFireVfx()
+        {
+            WireCombatVfx();
+        }
+
+        private static GameObject CreateEffectCoreCombatProjectile(
+            string sourcePath,
+            string targetPath,
+            ProjectileDefinition definition)
+        {
+            EnsureFolderForAsset(targetPath);
+            if (!AssetDatabase.CopyAsset(sourcePath, targetPath))
+            {
+                Debug.LogWarning("SexShot: failed to copy EffectCore projectile from " + sourcePath);
+            }
+
+            var contents = PrefabUtility.LoadPrefabContents(targetPath);
+            contents.tag = "Untagged";
+
+            foreach (var behaviour in contents.GetComponents<MonoBehaviour>())
+            {
+                if (behaviour != null && behaviour.GetType().Name == "ECExplodingProjectile")
+                {
+                    Object.DestroyImmediate(behaviour);
+                }
+            }
+
+            var rigidbody = contents.GetComponent<Rigidbody>();
+            if (rigidbody == null)
+            {
+                rigidbody = contents.AddComponent<Rigidbody>();
+            }
+
+            rigidbody.isKinematic = true;
+            rigidbody.useGravity = false;
+            rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+            var collider = contents.GetComponent<SphereCollider>();
+            if (collider == null)
+            {
+                collider = contents.AddComponent<SphereCollider>();
+            }
+
+            collider.isTrigger = true;
+            collider.radius = 0.12f;
+            collider.center = Vector3.zero;
+
+            var projectile = contents.GetComponent<Projectile>();
+            if (projectile == null)
+            {
+                projectile = contents.AddComponent<Projectile>();
+            }
+
+            var projectileSo = new SerializedObject(projectile);
+            projectileSo.FindProperty("_definition").objectReferenceValue = definition;
+            projectileSo.ApplyModifiedPropertiesWithoutUndo();
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(contents, targetPath);
+            PrefabUtility.UnloadPrefabContents(contents);
+            return prefab;
+        }
+
+        private static GameObject CreateRifleGoldFireProjectile(string targetPath, ProjectileDefinition definition)
+        {
+            return CreateEffectCoreCombatProjectile(
+                EffectCoreBulletRoot + "/Bullet_GoldFire_Small_Projectile_Template.prefab",
+                targetPath,
+                definition);
+        }
+
+        private static GameObject LoadEffectCorePrefab(string path)
+        {
+            return AssetDatabase.LoadAssetAtPath<GameObject>(path);
+        }
+
+        private static void EnsureAllWeaponPrefabFirePoints()
+        {
+            EnsureWeaponPrefabFirePoints(
+                PrefabRoot + "/Weapons/M1911.prefab",
+                new Vector3(0f, 0.05f, 0.12f),
+                new Vector3(0f, 0.05f, 0.12f),
+                new Vector3(0.04f, 0.06f, 0.05f));
+            EnsureWeaponPrefabFirePoints(
+                PrefabRoot + "/Weapons/Bennelli_M4.prefab",
+                new Vector3(0f, 0.05f, 0.28f),
+                new Vector3(0f, 0.05f, 0.28f),
+                new Vector3(0.05f, 0.08f, 0.1f));
+            EnsureWeaponPrefabFirePoints(
+                PrefabRoot + "/Weapons/M4_8.prefab",
+                new Vector3(0f, 0.04f, 0.38f),
+                new Vector3(0f, 0.04f, 0.38f),
+                new Vector3(0.04f, 0.07f, 0.12f));
+        }
+
+        private static void EnsureWeaponPrefabFirePoints(
+            string prefabPath,
+            Vector3 muzzleLocal,
+            Vector3 muzzleFlashLocal,
+            Vector3 shellLocal)
+        {
+            if (!File.Exists(prefabPath))
+            {
+                return;
+            }
+
+            var contents = PrefabUtility.LoadPrefabContents(prefabPath);
+            EnsureWeaponFirePoints(contents.transform, muzzleLocal, muzzleFlashLocal, shellLocal);
+            PrefabUtility.SaveAsPrefabAsset(contents, prefabPath);
+            PrefabUtility.UnloadPrefabContents(contents);
+        }
+
+        private static void EnsureWeaponFirePoints(
+            Transform root,
+            Vector3 muzzleLocal,
+            Vector3 muzzleFlashLocal,
+            Vector3 shellLocal)
+        {
+            EnsureChildFirePoint(root, "Muzzle", muzzleLocal, Quaternion.identity);
+            EnsureChildFirePoint(root, "MuzzleFlash", muzzleFlashLocal, Quaternion.identity);
+            EnsureChildFirePoint(root, "ShellEject", shellLocal, Quaternion.Euler(0f, 90f, 0f));
+        }
+
+        private static void EnsureChildFirePoint(Transform parent, string name, Vector3 localPosition, Quaternion localRotation)
+        {
+            var existing = parent.Find(name);
+            if (existing != null)
+            {
+                return;
+            }
+
+            var child = new GameObject(name).transform;
+            child.SetParent(parent, false);
+            child.localPosition = localPosition;
+            child.localRotation = localRotation;
+        }
+
+        private static void CleanupLegacyPlayerFirePoints(string playerPrefabPath)
+        {
+            if (!File.Exists(playerPrefabPath))
+            {
+                return;
+            }
+
+            var contents = PrefabUtility.LoadPrefabContents(playerPrefabPath);
+            var cameraPivot = contents.transform.Find("CameraPivot");
+            if (cameraPivot != null)
+            {
+                DestroyChildIfExists(cameraPivot, "Muzzle");
+                DestroyChildIfExists(cameraPivot, "ShellEject");
+            }
+
+            PrefabUtility.SaveAsPrefabAsset(contents, playerPrefabPath);
+            PrefabUtility.UnloadPrefabContents(contents);
+        }
+
+        private static void DestroyChildIfExists(Transform parent, string childName)
+        {
+            var child = parent.Find(childName);
+            if (child != null)
+            {
+                Object.DestroyImmediate(child.gameObject);
+            }
+        }
+
+        private static void WirePlayerShellEjectPoint(string playerPrefabPath)
+        {
+            EnsureAllWeaponPrefabFirePoints();
+            CleanupLegacyPlayerFirePoints(playerPrefabPath);
+        }
+
+        private static void EnsureFolderForAsset(string assetPath)
+        {
+            var folder = Path.GetDirectoryName(assetPath)?.Replace("\\", "/");
+            if (string.IsNullOrEmpty(folder))
+            {
+                return;
+            }
+
+            EnsureFolder(folder);
         }
     }
 }

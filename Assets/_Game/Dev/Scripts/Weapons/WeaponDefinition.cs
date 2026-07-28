@@ -17,6 +17,11 @@ namespace SexShot.Dev.Weapons
         [SerializeField] private int _ammoPerPickup = 5;
         [SerializeField] private GameObject _projectilePrefab;
         [SerializeField] private GameObject _worldModelPrefab;
+        [SerializeField] private GameObject _muzzleFlashPrefab;
+        [SerializeField] private float _muzzleFlashScale = 1f;
+        [SerializeField] private GameObject _impactPrefab;
+        [SerializeField] private GameObject _shellPrefab;
+        [SerializeField] private bool _ejectShells;
 
         public WeaponId WeaponId => _weaponId;
         public string DisplayName => string.IsNullOrWhiteSpace(_displayName) ? _weaponId.ToString() : _displayName;
@@ -30,5 +35,10 @@ namespace SexShot.Dev.Weapons
         public int AmmoPerPickup => Mathf.Max(0, _ammoPerPickup);
         public GameObject ProjectilePrefab => _projectilePrefab;
         public GameObject WorldModelPrefab => _worldModelPrefab;
+        public GameObject MuzzleFlashPrefab => _muzzleFlashPrefab;
+        public float MuzzleFlashScale => Mathf.Max(0.01f, _muzzleFlashScale);
+        public GameObject ImpactPrefab => _impactPrefab;
+        public GameObject ShellPrefab => _shellPrefab;
+        public bool EjectShells => _ejectShells;
     }
 }

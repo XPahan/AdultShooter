@@ -23,4 +23,7 @@ MonoBehaviour:
   _projectileSpeed: 10
   _aimHeight: 1.2
   _deathDespawnDelay: 1.5
-  _projectilePrefab: {fileID: 441451815486176990, guid: 2575fa97405bd9d4790d3471443a1b08, type: 3}
+  _projectilePrefab: {fileID: 1238843893459588, guid: 5768bfabe8b94c4293ca20ca6100374c, type: 3}
+  _muzzleFlashPrefab: {fileID: 1000012903210382, guid: 4952a84eb0a54d1499a7b15512792645, type: 3}
+  _muzzleFlashScale: 0.35
+  _impactPrefab: {fileID: 1879272669879180, guid: 2c076ddee495ebf48b7388052e61bf0b, type: 3}
