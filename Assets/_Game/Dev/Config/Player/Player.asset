@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Player
   m_EditorClassIdentifier: 
   _maxHealth: 100
-  _moveSpeed: 6
-  _jumpHeight: 1.4
-  _gravity: -20
+  _moveSpeed: 8
+  _jumpHeight: 2
+  _gravity: -25
   _lookSensitivity: 0.12
   _minPitch: -85
   _maxPitch: 85
