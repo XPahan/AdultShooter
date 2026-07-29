@@ -24,6 +24,10 @@ namespace SexShot.Dev.Weapons
         [SerializeField] private bool _ejectShells;
         [SerializeField] private float _recoilPitch = 1f;
         [SerializeField] private float _recoilYaw = 0.35f;
+        [SerializeField] private AudioClip[] _fireSounds;
+        [SerializeField] private float _fireSoundVolume = 1f;
+        [SerializeField] private AudioClip[] _fireTailSounds;
+        [SerializeField] private float _fireTailSoundVolume = 0.85f;
 
         public WeaponId WeaponId => _weaponId;
         public string DisplayName => string.IsNullOrWhiteSpace(_displayName) ? _weaponId.ToString() : _displayName;
@@ -44,5 +48,9 @@ namespace SexShot.Dev.Weapons
         public bool EjectShells => _ejectShells;
         public float RecoilPitch => Mathf.Max(0f, _recoilPitch);
         public float RecoilYaw => Mathf.Max(0f, _recoilYaw);
+        public AudioClip[] FireSounds => _fireSounds;
+        public float FireSoundVolume => Mathf.Clamp01(_fireSoundVolume);
+        public AudioClip[] FireTailSounds => _fireTailSounds;
+        public float FireTailSoundVolume => Mathf.Clamp01(_fireTailSoundVolume);
     }
 }
