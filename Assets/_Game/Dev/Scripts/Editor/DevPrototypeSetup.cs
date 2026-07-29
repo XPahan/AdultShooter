@@ -37,6 +37,7 @@ namespace SexShot.Dev.Editor
             "Assets/EffectCore/packs/StylizedProjectilePack1/prefabs/Bullet/shells/bulletShell_ParticleSystem.prefab";
         private const string EffectCoreShotgunShellPrefab =
             "Assets/EffectCore/packs/StylizedProjectilePack1/prefabs/Bullet/shells/shotgunShell_rigidBody.prefab";
+        private const string DevBrassShellPrefab = PrefabRoot + "/Vfx/BrassShell.prefab";
 
         [MenuItem("SexShot/Dev/Wire Enemy Prefab References")]
         public static void WireEnemyPrefabMenu()
@@ -306,7 +307,7 @@ namespace SexShot.Dev.Editor
             so.FindProperty("_staggerDuration").floatValue = 0.35f;
             so.FindProperty("_moveSpeed").floatValue = 1.8f;
             so.FindProperty("_turnSpeed").floatValue = 8f;
-            so.FindProperty("_attackRange").floatValue = 6f;
+            so.FindProperty("_attackRange").floatValue = 10f;
             so.FindProperty("_attackCooldown").floatValue = 2f;
             so.FindProperty("_projectileDamage").floatValue = 2f;
             so.FindProperty("_projectileSpeed").floatValue = 10f;
@@ -1083,7 +1084,7 @@ namespace SexShot.Dev.Editor
                 pistolProjectile,
                 EffectCoreBlazingRedMediumRoot + "/Bullet_BlazingRed_Medium_MuzzleFlare.prefab",
                 EffectCoreBlazingRedMediumRoot + "/Bullet_BlazingRed_Medium_Impact.prefab",
-                EffectCoreShellPrefab,
+                DevBrassShellPrefab,
                 ejectShells: true,
                 muzzleFlashScale: 0.3f);
             WireWeaponVfx(
@@ -1091,7 +1092,7 @@ namespace SexShot.Dev.Editor
                 shotgunProjectile,
                 EffectCoreGoldFireBigRoot + "/Bullet_GoldFire_Big_MuzzleFlare_Template.prefab",
                 EffectCoreGoldFireMediumRoot + "/Bullet_GoldFire_Medium_Impact_Template.prefab",
-                EffectCoreShotgunShellPrefab,
+                DevBrassShellPrefab,
                 ejectShells: true,
                 muzzleFlashScale: 0.22f);
             WireWeaponVfx(
@@ -1099,9 +1100,11 @@ namespace SexShot.Dev.Editor
                 rifleProjectile,
                 EffectCoreBulletRoot + "/Bullet_GoldFire_Small_MuzzleFlare_Template.prefab",
                 EffectCoreBulletRoot + "/Bullet_GoldFire_Small_Impact_Template.prefab",
-                EffectCoreShellPrefab,
+                DevBrassShellPrefab,
                 ejectShells: true,
                 muzzleFlashScale: 0.25f);
+
+            EnsureBrassShellPrefab();
 
             var succubus = AssetDatabase.LoadAssetAtPath<EnemyDefinition>(ConfigRoot + "/Enemies/Succubus.asset");
             if (succubus != null)
@@ -1128,6 +1131,15 @@ namespace SexShot.Dev.Editor
 
             EnsureAllWeaponPrefabFirePoints();
             CleanupLegacyPlayerFirePoints(PrefabRoot + "/Player/Player.prefab");
+        }
+
+        private static void EnsureBrassShellPrefab()
+        {
+            var shellPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DevBrassShellPrefab);
+            if (shellPrefab == null)
+            {
+                DevShellSetup.CreateBrassShellPrefab();
+            }
         }
 
         private static void WireWeaponVfx(
@@ -1235,9 +1247,9 @@ namespace SexShot.Dev.Editor
         {
             EnsureWeaponPrefabFirePoints(
                 PrefabRoot + "/Weapons/M1911.prefab",
-                new Vector3(0f, 0.05f, 0.12f),
-                new Vector3(0f, 0.05f, 0.12f),
-                new Vector3(0.04f, 0.06f, 0.05f));
+                new Vector3(0f, 0.027f, -0.32f),
+                new Vector3(0f, 0.021f, -0.33f),
+                new Vector3(-0.0415f, 0.0273f, -0.0296f));
             EnsureWeaponPrefabFirePoints(
                 PrefabRoot + "/Weapons/Bennelli_M4.prefab",
                 new Vector3(0f, 0.05f, 0.28f),
@@ -1273,8 +1285,9 @@ namespace SexShot.Dev.Editor
             Vector3 muzzleFlashLocal,
             Vector3 shellLocal)
         {
-            EnsureChildFirePoint(root, "Muzzle", muzzleLocal, Quaternion.identity);
-            EnsureChildFirePoint(root, "MuzzleFlash", muzzleFlashLocal, Quaternion.identity);
+            var muzzleRotation = Quaternion.Euler(0f, 180f, 0f);
+            EnsureChildFirePoint(root, "Muzzle", muzzleLocal, muzzleRotation);
+            EnsureChildFirePoint(root, "MuzzleFlash", muzzleFlashLocal, muzzleRotation);
             EnsureChildFirePoint(root, "ShellEject", shellLocal, Quaternion.Euler(0f, 90f, 0f));
         }
 
@@ -1283,6 +1296,8 @@ namespace SexShot.Dev.Editor
             var existing = parent.Find(name);
             if (existing != null)
             {
+                existing.localPosition = localPosition;
+                existing.localRotation = localRotation;
                 return;
             }
 

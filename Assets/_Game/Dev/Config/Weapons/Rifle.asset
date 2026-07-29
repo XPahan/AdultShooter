@@ -27,5 +27,5 @@ MonoBehaviour:
   _muzzleFlashPrefab: {fileID: 1000012903210382, guid: 01e91ba42e028824b86d47ee5f416589, type: 3}
   _muzzleFlashScale: 0.25
   _impactPrefab: {fileID: 1879272669879180, guid: 7bef351ddc33ae044b671a7664396a20, type: 3}
-  _shellPrefab: {fileID: 1467181274829480, guid: 41e86fd3ee46b76448791422f9949474, type: 3}
+  _shellPrefab: {fileID: 6899692634302251117, guid: 7f61060a0388460428b38926c0f0de2c, type: 3}
   _ejectShells: 1

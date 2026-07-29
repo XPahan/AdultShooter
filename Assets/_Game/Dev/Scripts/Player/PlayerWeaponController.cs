@@ -1,3 +1,4 @@
+using SexShot.Dev.Vfx;
 using SexShot.Dev.Combat;
 using SexShot.Dev.Config;
 using SexShot.Dev.Weapons;
@@ -19,6 +20,8 @@ namespace SexShot.Dev.Player
         private Transform _muzzle;
         private Transform _muzzleFlashPoint;
         private Transform _shellEjectPoint;
+
+        private const float ProjectileSpawnOffset = 0.45f;
 
         public WeaponDefinition ActiveWeapon
         {
@@ -174,7 +177,8 @@ namespace SexShot.Dev.Player
             for (var i = 0; i < weapon.PelletsPerShot; i++)
             {
                 var direction = ApplySpread(_muzzle.forward, weapon.SpreadDegrees);
-                var instance = Instantiate(weapon.ProjectilePrefab, _muzzle.position, Quaternion.LookRotation(direction));
+                var spawnPosition = _muzzle.position + direction * ProjectileSpawnOffset;
+                var instance = Instantiate(weapon.ProjectilePrefab, spawnPosition, Quaternion.LookRotation(direction));
                 var projectile = instance.GetComponent<Projectile>();
                 if (projectile == null)
                 {
@@ -218,7 +222,14 @@ namespace SexShot.Dev.Player
                 return;
             }
 
-            Instantiate(weapon.ShellPrefab, _shellEjectPoint.position, _shellEjectPoint.rotation);
+            var shell = Instantiate(weapon.ShellPrefab, _shellEjectPoint.position, _shellEjectPoint.rotation);
+            if (shell.TryGetComponent<EjectedShell>(out var ejectedShell))
+            {
+                ejectedShell.Launch(_shellEjectPoint.right);
+                return;
+            }
+
+            Destroy(shell, 5f);
         }
 
         private static Vector3 ApplySpread(Vector3 forward, float spreadDegrees)
