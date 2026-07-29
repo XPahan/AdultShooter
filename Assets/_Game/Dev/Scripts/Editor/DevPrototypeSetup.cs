@@ -1113,6 +1113,15 @@ namespace SexShot.Dev.Editor
                 so.FindProperty("_impactPrefab").objectReferenceValue = LoadEffectCorePrefab(
                     EffectCorePlasmaPurpleHazeMediumRoot + "/Plasma_PurpleHaze_Medium_Impact.prefab");
                 so.FindProperty("_muzzleFlashScale").floatValue = 0.35f;
+                var gorePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabRoot + "/Vfx/EnemyGoreBurst.prefab");
+                if (gorePrefab == null)
+                {
+                    DevGoreVfxSetup.CreateEnemyGoreVfx();
+                    gorePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabRoot + "/Vfx/EnemyGoreBurst.prefab");
+                }
+
+                so.FindProperty("_deathGorePrefab").objectReferenceValue = gorePrefab;
+                so.FindProperty("_deathGoreScale").floatValue = 1f;
                 so.ApplyModifiedPropertiesWithoutUndo();
                 EditorUtility.SetDirty(succubus);
             }
