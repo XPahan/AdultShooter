@@ -127,9 +127,10 @@ MonoBehaviour:
   _sideButtonMargin: 16
   _sideButtonSpacing: 8
   _statusMargin: 24
-  _statusIconSize: 56
-  _statusRowSpacing: 10
-  _statusValueWidth: 90
+  _statusIconSize: 84
+  _statusGroupSpacing: 8
+  _statusValueWidth: 80
+  _statusFontSize: 42
 --- !u!114 &7294996352107342778
 MonoBehaviour:
   m_ObjectHideFlags: 0
