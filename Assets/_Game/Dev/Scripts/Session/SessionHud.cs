@@ -20,9 +20,10 @@ namespace SexShot.Dev.Session
         [SerializeField] private float _sideButtonMargin = 16f;
         [SerializeField] private float _sideButtonSpacing = 8f;
         [SerializeField] private float _statusMargin = 24f;
-        [SerializeField] private float _statusIconSize = 56f;
-        [SerializeField] private float _statusRowSpacing = 10f;
-        [SerializeField] private float _statusValueWidth = 90f;
+        [SerializeField] private float _statusIconSize = 84f;
+        [SerializeField] private float _statusGroupSpacing = 8f;
+        [SerializeField] private float _statusValueWidth = 80f;
+        [SerializeField] private int _statusFontSize = 42;
 
         private bool _menuOpen;
         private bool _pausedByMenu;
@@ -93,10 +94,14 @@ namespace SexShot.Dev.Session
                 _statusValueStyle = new GUIStyle(GUI.skin.label)
                 {
                     alignment = TextAnchor.MiddleLeft,
-                    fontSize = 28,
+                    fontSize = _statusFontSize,
                     fontStyle = FontStyle.Bold
                 };
                 _statusValueStyle.normal.textColor = Color.white;
+            }
+            else if (_statusValueStyle.fontSize != _statusFontSize)
+            {
+                _statusValueStyle.fontSize = _statusFontSize;
             }
 
             if (_weaponHintStyle == null)
@@ -131,17 +136,17 @@ namespace SexShot.Dev.Session
                 ? ammo.GetAmmo(weapon.WeaponId).ToString()
                 : "-";
 
-            var rowHeight = _statusIconSize;
-            var panelWidth = _statusIconSize + 12f + _statusValueWidth;
-            var panelHeight = rowHeight * 2f + _statusRowSpacing;
+            var itemWidth = _statusIconSize + 12f + _statusValueWidth;
+            var panelWidth = itemWidth * 2f + _statusGroupSpacing;
+            var panelHeight = _statusIconSize;
             var panelX = Screen.width - panelWidth - _statusMargin;
             var panelY = Screen.height - panelHeight - _statusMargin;
 
-            DrawStatusRow(panelX, panelY, _healthIcon, healthValue);
-            DrawStatusRow(panelX, panelY + rowHeight + _statusRowSpacing, _ammoIcon, ammoValue);
+            DrawStatusItem(panelX, panelY, _ammoIcon, ammoValue);
+            DrawStatusItem(panelX + itemWidth + _statusGroupSpacing, panelY, _healthIcon, healthValue);
         }
 
-        private void DrawStatusRow(float x, float y, Texture2D icon, string value)
+        private void DrawStatusItem(float x, float y, Texture2D icon, string value)
         {
             if (icon != null)
             {
