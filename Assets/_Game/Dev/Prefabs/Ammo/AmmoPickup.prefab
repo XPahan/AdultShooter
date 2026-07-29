@@ -96,6 +96,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5132980351640308688}
   - component: {fileID: 1298914434551251296}
+  - component: {fileID: 106287368801252759}
   m_Layer: 0
   m_Name: BottomGlow
   m_TagString: Untagged
@@ -183,6 +184,29 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
+--- !u!114 &106287368801252759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1681248726743477120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 3
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_RenderingLayers: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_ShadowRenderingLayers: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
 --- !u!1 &7960945948744281051
 GameObject:
   m_ObjectHideFlags: 0
@@ -227,8 +251,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1601288658520395389}
-  - component: {fileID: 6668747001763341827}
   - component: {fileID: 1746226965426988784}
+  - component: {fileID: 4220690728935397335}
   m_Layer: 0
   m_Name: AmmoPickup
   m_TagString: Untagged
@@ -252,8 +276,22 @@ Transform:
   - {fileID: 1171115744612616974}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &6668747001763341827
-SphereCollider:
+--- !u!114 &1746226965426988784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9035655279952788494}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87f63e8b386a37846ab338b84609792f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _definition: {fileID: 11400000, guid: 330ea65f6c888eb4fa453052b1b96d0c, type: 2}
+  _vfxRoot: {fileID: 7960945948744281051}
+--- !u!65 &4220690728935397335
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -271,22 +309,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 4.4
-  m_Center: {x: 0, y: 3.6, z: 0}
---- !u!114 &1746226965426988784
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9035655279952788494}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87f63e8b386a37846ab338b84609792f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _definition: {fileID: 11400000, guid: 330ea65f6c888eb4fa453052b1b96d0c, type: 2}
-  _vfxRoot: {fileID: 7960945948744281051}
+  m_Size: {x: 1.94, y: 1.47, z: 1.77}
+  m_Center: {x: 0, y: 0.37, z: 0}
 --- !u!1001 &1202109546624594346
 PrefabInstance:
   m_ObjectHideFlags: 0
