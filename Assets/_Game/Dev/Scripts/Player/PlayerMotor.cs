@@ -14,6 +14,7 @@ namespace SexShot.Dev.Player
         private Vector3 _velocity;
 
         public bool IsGrounded => _controller != null && _controller.isGrounded;
+        public float HorizontalSpeed { get; private set; }
 
         public void SetInputEnabled(bool enabled)
         {
@@ -58,7 +59,9 @@ namespace SexShot.Dev.Player
             }
 
             _velocity.y += _definition.Gravity * Time.deltaTime;
-            _controller.Move((move * _definition.MoveSpeed + _velocity) * Time.deltaTime);
+            var worldMove = move * _definition.MoveSpeed;
+            HorizontalSpeed = worldMove.magnitude;
+            _controller.Move((worldMove + _velocity) * Time.deltaTime);
         }
     }
 }

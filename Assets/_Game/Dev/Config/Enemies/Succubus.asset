@@ -33,4 +33,4 @@ MonoBehaviour:
   _attackSound: {fileID: 8300000, guid: 07812ee882e01ad42a40fc022324a436, type: 3}
   _attackSoundVolume: 1
   _deathSound: {fileID: 8300000, guid: d6f09654f4f8f604e98c13da21e2a5a1, type: 3}
-  _deathSoundVolume: 1
+  _deathSoundVolume: 6

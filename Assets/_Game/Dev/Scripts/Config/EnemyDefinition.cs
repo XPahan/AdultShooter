@@ -49,6 +49,6 @@ namespace SexShot.Dev.Config
         public AudioClip AttackSound => _attackSound;
         public float AttackSoundVolume => Mathf.Clamp01(_attackSoundVolume);
         public AudioClip DeathSound => _deathSound;
-        public float DeathSoundVolume => Mathf.Clamp01(_deathSoundVolume);
+        public float DeathSoundVolume => Mathf.Clamp(_deathSoundVolume, 0f, 10f);
     }
 }
