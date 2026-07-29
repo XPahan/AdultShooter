@@ -7,12 +7,10 @@ namespace SexShot.Dev.Vfx
         private static Material _bloodParticleMaterial;
         private static Material _gibMaterial;
 
-        [SerializeField] private float _lifetime = 10f;
-        [SerializeField] private int _gibCount = 20;
-        [SerializeField] private float _gibForceMin = 6f;
-        [SerializeField] private float _gibForceMax = 18f;
-        [SerializeField] private float _gibScaleMin = 0.1f;
-        [SerializeField] private float _gibScaleMax = 0.35f;
+        [SerializeField] private float _lifetime = 5f;
+        [SerializeField] private float _partForceMin = 22f;
+        [SerializeField] private float _partForceMax = 42f;
+        [SerializeField] private float _partDespawnDelay = 1f;
         [SerializeField] private float _overallScale = 1f;
 
         private void Awake()
@@ -21,9 +19,7 @@ namespace SexShot.Dev.Vfx
             var scale = Mathf.Max(0.1f, _overallScale);
             CreateBloodBurst(scale);
             CreateBloodSplatter(scale);
-            // BloodMist disabled: large billboard quads without soft texture.
-            // Temporarily muted: cube/sphere gibs.
-            // SpawnGibs(scale);
+            SpawnBodyParts(scale);
         }
 
         private void Start()
@@ -49,7 +45,7 @@ namespace SexShot.Dev.Vfx
                     ?? Shader.Find("Standard");
                 _gibMaterial = new Material(shader)
                 {
-                    color = new Color(0.32f, 0.06f, 0.05f, 1f)
+                    color = new Color(0.42f, 0.04f, 0.04f, 1f)
                 };
             }
         }
@@ -63,23 +59,24 @@ namespace SexShot.Dev.Vfx
             var main = ps.main;
             main.duration = 0.15f;
             main.loop = false;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(0.35f, 0.9f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(5f * scale, 14f * scale);
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.175f, 0.45f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(2.4f * scale, 7f * scale);
             main.startSize = new ParticleSystem.MinMaxCurve(0.03f * scale, 0.1f * scale);
             main.startColor = new ParticleSystem.MinMaxGradient(
                 new Color(0.65f, 0.03f, 0.03f, 1f),
                 new Color(0.35f, 0.01f, 0.01f, 1f));
-            main.gravityModifier = 1.4f;
-            main.maxParticles = 200;
+            main.gravityModifier = 0.525f;
+            main.maxParticles = 700;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
 
             var emission = ps.emission;
             emission.rateOverTime = 0f;
-            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, (short)110) });
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, (short)400) });
 
             var shape = ps.shape;
-            shape.shapeType = ParticleSystemShapeType.Sphere;
+            shape.shapeType = ParticleSystemShapeType.Hemisphere;
             shape.radius = 0.15f * scale;
+            go.transform.localRotation = Quaternion.LookRotation(Vector3.up);
 
             var renderer = go.GetComponent<ParticleSystemRenderer>();
             renderer.material = _bloodParticleMaterial;
@@ -98,12 +95,12 @@ namespace SexShot.Dev.Vfx
             main.duration = 0.4f;
             main.loop = false;
             main.startLifetime = new ParticleSystem.MinMaxCurve(0.8f, 1.8f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(1.5f * scale, 4.5f * scale);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(3f * scale, 9f * scale);
             main.startSize = new ParticleSystem.MinMaxCurve(0.12f * scale, 0.35f * scale);
             main.startColor = new ParticleSystem.MinMaxGradient(
                 new Color(0.5f, 0.02f, 0.02f, 0.7f),
                 new Color(0.25f, 0.01f, 0.01f, 0.4f));
-            main.gravityModifier = 0.35f;
+            main.gravityModifier = 0.0875f;
             main.maxParticles = 60;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
 
@@ -147,69 +144,110 @@ namespace SexShot.Dev.Vfx
             var main = ps.main;
             main.duration = 0.1f;
             main.loop = false;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(0.2f, 0.55f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(8f * scale, 18f * scale);
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.1f, 0.275f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(4f * scale, 10f * scale);
             main.startSize = new ParticleSystem.MinMaxCurve(0.02f * scale, 0.06f * scale);
             main.startColor = new Color(0.75f, 0.04f, 0.03f, 1f);
-            main.gravityModifier = 2.2f;
-            main.maxParticles = 180;
+            main.gravityModifier = 0.825f;
+            main.maxParticles = 640;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
 
             var emission = ps.emission;
             emission.rateOverTime = 0f;
-            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, (short)95) });
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, (short)360) });
 
             var shape = ps.shape;
-            shape.shapeType = ParticleSystemShapeType.Cone;
-            shape.angle = 55f;
-            shape.radius = 0.1f * scale;
+            shape.shapeType = ParticleSystemShapeType.Sphere;
+            shape.radius = 0.12f * scale;
 
             var renderer = go.GetComponent<ParticleSystemRenderer>();
             renderer.material = _bloodParticleMaterial;
             renderer.renderMode = ParticleSystemRenderMode.Stretch;
-            renderer.lengthScale = 2.5f;
-            renderer.velocityScale = 0.15f;
+            renderer.lengthScale = 1.1f;
+            renderer.velocityScale = 0.06f;
 
             ps.Play();
         }
 
-        private void SpawnGibs(float scale)
+        private void SpawnBodyParts(float scale)
         {
-            for (var i = 0; i < _gibCount; i++)
+            var headDirection = (Vector3.up * 0.75f + Random.insideUnitSphere * 0.3f).normalized;
+            var torsoDirection = (Vector3.back * 0.45f + Vector3.up * 0.5f + Random.insideUnitSphere * 0.25f).normalized;
+
+            SpawnPhysicsPart(
+                PrimitiveType.Sphere,
+                "GoreHead",
+                new Vector3(0f, 0.45f, 0f) * scale,
+                Vector3.one * (0.28f * scale),
+                headDirection,
+                scale,
+                1f);
+
+            SpawnPhysicsPart(
+                PrimitiveType.Cube,
+                "GoreTorso",
+                new Vector3(0f, 0.05f, 0f) * scale,
+                new Vector3(0.36f, 0.52f, 0.21f) * scale,
+                torsoDirection,
+                scale,
+                1.35f);
+
+            var limbs = new[]
             {
-                var useCube = Random.value > 0.35f;
-                var gib = GameObject.CreatePrimitive(useCube ? PrimitiveType.Cube : PrimitiveType.Sphere);
-                gib.name = "Gib";
-                gib.transform.SetParent(transform, false);
+                (pos: new Vector3(-0.34f, 0.12f, 0f), size: new Vector3(0.1f, 0.36f, 0.1f), dir: new Vector3(-1f, 0.35f, 0.15f)),
+                (pos: new Vector3(0.34f, 0.12f, 0f), size: new Vector3(0.1f, 0.36f, 0.1f), dir: new Vector3(1f, 0.35f, 0.15f)),
+                (pos: new Vector3(-0.18f, -0.36f, 0f), size: new Vector3(0.11f, 0.4f, 0.11f), dir: new Vector3(-0.55f, 0.15f, 0.35f)),
+                (pos: new Vector3(0.18f, -0.36f, 0f), size: new Vector3(0.11f, 0.4f, 0.11f), dir: new Vector3(0.55f, 0.15f, 0.35f))
+            };
 
-                var gibScale = Random.Range(_gibScaleMin, _gibScaleMax) * scale;
-                gib.transform.localScale = Vector3.one * gibScale;
-                gib.transform.localPosition = Random.insideUnitSphere * (0.15f * scale);
-
-                var renderer = gib.GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    renderer.sharedMaterial = _gibMaterial;
-                }
-
-                var collider = gib.GetComponent<Collider>();
-                if (collider != null)
-                {
-                    Destroy(collider);
-                }
-
-                var rb = gib.AddComponent<Rigidbody>();
-                rb.mass = gibScale * 8f;
-                rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-
-                var direction = Random.onUnitSphere;
-                direction.y = Mathf.Abs(direction.y) * 0.5f + 0.35f;
-                var force = Random.Range(_gibForceMin, _gibForceMax) * scale;
-                rb.AddForce(direction.normalized * force, ForceMode.Impulse);
-                rb.AddTorque(Random.insideUnitSphere * (force * 0.6f), ForceMode.Impulse);
-
-                Destroy(gib, _lifetime * 0.85f);
+            for (var i = 0; i < limbs.Length; i++)
+            {
+                var limb = limbs[i];
+                var direction = (limb.dir + Random.insideUnitSphere * 0.2f).normalized;
+                SpawnPhysicsPart(
+                    PrimitiveType.Cube,
+                    $"GoreLimb_{i + 1}",
+                    limb.pos * scale,
+                    limb.size * scale,
+                    direction,
+                    scale,
+                    0.85f);
             }
+        }
+
+        private void SpawnPhysicsPart(
+            PrimitiveType primitiveType,
+            string partName,
+            Vector3 localPosition,
+            Vector3 localScale,
+            Vector3 launchDirection,
+            float scale,
+            float massMultiplier)
+        {
+            var part = GameObject.CreatePrimitive(primitiveType);
+            part.name = partName;
+            part.transform.SetParent(transform, false);
+            part.transform.localPosition = localPosition;
+            part.transform.localScale = localScale;
+            part.transform.localRotation = Random.rotation;
+
+            var renderer = part.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                renderer.sharedMaterial = _gibMaterial;
+            }
+
+            var rb = part.AddComponent<Rigidbody>();
+            var mass = Mathf.Max(localScale.x, localScale.y, localScale.z) * massMultiplier * 10f;
+            rb.mass = mass;
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+
+            var force = Random.Range(_partForceMin, _partForceMax) * scale;
+            rb.AddForce(launchDirection.normalized * force, ForceMode.Impulse);
+            rb.AddTorque(Random.insideUnitSphere * (force * 0.75f), ForceMode.Impulse);
+
+            var despawn = part.AddComponent<GorePartDespawnOnCollision>();
+            despawn.Initialize(_partDespawnDelay, _lifetime);
         }
     }
 }

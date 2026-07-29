@@ -19,12 +19,10 @@ namespace SexShot.Dev.Editor
             var effect = root.AddComponent<GoreDeathEffect>();
 
             var so = new SerializedObject(effect);
-            so.FindProperty("_lifetime").floatValue = 10f;
-            so.FindProperty("_gibCount").intValue = 22;
-            so.FindProperty("_gibForceMin").floatValue = 7f;
-            so.FindProperty("_gibForceMax").floatValue = 20f;
-            so.FindProperty("_gibScaleMin").floatValue = 0.12f;
-            so.FindProperty("_gibScaleMax").floatValue = 0.38f;
+            so.FindProperty("_lifetime").floatValue = 5f;
+            so.FindProperty("_partForceMin").floatValue = 22f;
+            so.FindProperty("_partForceMax").floatValue = 42f;
+            so.FindProperty("_partDespawnDelay").floatValue = 1f;
             so.FindProperty("_overallScale").floatValue = 1.1f;
             so.ApplyModifiedPropertiesWithoutUndo();
 

@@ -44,10 +44,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34b5f70740355e24daaa080f100a6ad8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _lifetime: 10
-  _gibCount: 22
-  _gibForceMin: 7
-  _gibForceMax: 20
-  _gibScaleMin: 0.12
-  _gibScaleMax: 0.38
+  _lifetime: 5
+  _partForceMin: 22
+  _partForceMax: 42
+  _partDespawnDelay: 1
   _overallScale: 1.1
