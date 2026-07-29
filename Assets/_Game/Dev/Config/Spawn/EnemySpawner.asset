@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: EnemySpawner
   m_EditorClassIdentifier: 
   _enemyPrefab: {fileID: 6811337431456295419, guid: 9da081157074c594a86f2e1618f1fb13, type: 3}
-  _initialCount: 5
-  _maxCount: 15
+  _initialCount: 12
+  _maxCount: 25
   _spawnInterval: 3

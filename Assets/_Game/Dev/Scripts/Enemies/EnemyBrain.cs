@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace SexShot.Dev.Enemies
 {
+    [RequireComponent(typeof(CharacterController))]
     public class EnemyBrain : MonoBehaviour
     {
         [SerializeField] private EnemyDefinition _definition;
@@ -11,6 +12,7 @@ namespace SexShot.Dev.Enemies
         [SerializeField] private Transform _muzzle;
         [SerializeField] private Animator _animator;
         [SerializeField] private Collider _hitCollider;
+        [SerializeField] private CharacterController _controller;
 
         private static readonly int AttackHash = Animator.StringToHash("Attack");
         private static readonly int HitHash = Animator.StringToHash("Hit");
@@ -18,6 +20,7 @@ namespace SexShot.Dev.Enemies
 
         private float _nextAttackTime;
         private Transform _player;
+        private Vector3 _velocity;
         private bool _isDead;
 
         public void SetPlayer(Transform player)
@@ -43,10 +46,16 @@ namespace SexShot.Dev.Enemies
             }
 
             _isDead = true;
+            _velocity = Vector3.zero;
 
             if (_hitCollider != null)
             {
                 _hitCollider.enabled = false;
+            }
+
+            if (_controller != null)
+            {
+                _controller.enabled = false;
             }
 
             HideModel();
@@ -80,12 +89,26 @@ namespace SexShot.Dev.Enemies
             gore.transform.localScale = Vector3.one * _definition.DeathGoreScale;
         }
 
+        private void Awake()
+        {
+            if (_controller == null)
+            {
+                _controller = GetComponent<CharacterController>();
+            }
+        }
+
         private void OnEnable()
         {
             _isDead = false;
+            _velocity = Vector3.zero;
             if (_hitCollider != null)
             {
                 _hitCollider.enabled = true;
+            }
+
+            if (_controller != null)
+            {
+                _controller.enabled = true;
             }
         }
 
@@ -93,12 +116,14 @@ namespace SexShot.Dev.Enemies
         {
             if (_isDead || _avatar == null || !_avatar.IsAlive || _player == null || _definition == null)
             {
+                ApplyMovement(Vector3.zero);
                 SetSpeed(0f);
                 return;
             }
 
             if (_avatar.IsStaggered)
             {
+                ApplyMovement(Vector3.zero);
                 SetSpeed(0f);
                 return;
             }
@@ -117,15 +142,30 @@ namespace SexShot.Dev.Enemies
 
             if (distance > _definition.AttackRange)
             {
-                var step = transform.forward * (_definition.MoveSpeed * Time.deltaTime);
-                step.y = 0f;
-                transform.position += step;
+                ApplyMovement(transform.forward * _definition.MoveSpeed);
                 SetSpeed(_definition.MoveSpeed);
                 return;
             }
 
+            ApplyMovement(Vector3.zero);
             SetSpeed(0f);
             TryAttack();
+        }
+
+        private void ApplyMovement(Vector3 horizontalVelocity)
+        {
+            if (_controller == null || _definition == null)
+            {
+                return;
+            }
+
+            if (_controller.isGrounded && _velocity.y < 0f)
+            {
+                _velocity.y = -2f;
+            }
+
+            _velocity.y += _definition.Gravity * Time.deltaTime;
+            _controller.Move((horizontalVelocity + new Vector3(0f, _velocity.y, 0f)) * Time.deltaTime);
         }
 
         private void TryAttack()
