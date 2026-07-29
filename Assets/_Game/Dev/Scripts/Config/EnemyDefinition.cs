@@ -20,6 +20,8 @@ namespace SexShot.Dev.Config
         [SerializeField] private GameObject _muzzleFlashPrefab;
         [SerializeField] private float _muzzleFlashScale = 1f;
         [SerializeField] private GameObject _impactPrefab;
+        [SerializeField] private GameObject _deathGorePrefab;
+        [SerializeField] private float _deathGoreScale = 1f;
 
         public string DisplayName => _displayName;
         public float MaxHealth => _maxHealth;
@@ -36,5 +38,7 @@ namespace SexShot.Dev.Config
         public GameObject MuzzleFlashPrefab => _muzzleFlashPrefab;
         public float MuzzleFlashScale => Mathf.Max(0.01f, _muzzleFlashScale);
         public GameObject ImpactPrefab => _impactPrefab;
+        public GameObject DeathGorePrefab => _deathGorePrefab;
+        public float DeathGoreScale => Mathf.Max(0.1f, _deathGoreScale);
     }
 }

@@ -13,7 +13,6 @@ namespace SexShot.Dev.Enemies
         [SerializeField] private Collider _hitCollider;
 
         private static readonly int AttackHash = Animator.StringToHash("Attack");
-        private static readonly int DieHash = Animator.StringToHash("Die");
         private static readonly int HitHash = Animator.StringToHash("Hit");
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
 
@@ -44,17 +43,41 @@ namespace SexShot.Dev.Enemies
             }
 
             _isDead = true;
-            if (_animator != null)
-            {
-                _animator.SetTrigger(DieHash);
-            }
 
             if (_hitCollider != null)
             {
                 _hitCollider.enabled = false;
             }
 
-            Destroy(gameObject, _definition.DeathDespawnDelay);
+            HideModel();
+            SpawnDeathGore();
+            Destroy(gameObject, 0.05f);
+        }
+
+        private void HideModel()
+        {
+            var model = transform.Find("Model");
+            if (model == null)
+            {
+                return;
+            }
+
+            foreach (var renderer in model.GetComponentsInChildren<Renderer>(true))
+            {
+                renderer.enabled = false;
+            }
+        }
+
+        private void SpawnDeathGore()
+        {
+            if (_definition.DeathGorePrefab == null)
+            {
+                return;
+            }
+
+            var spawnPosition = transform.position + Vector3.up * _definition.AimHeight;
+            var gore = Instantiate(_definition.DeathGorePrefab, spawnPosition, Quaternion.identity);
+            gore.transform.localScale = Vector3.one * _definition.DeathGoreScale;
         }
 
         private void OnEnable()
