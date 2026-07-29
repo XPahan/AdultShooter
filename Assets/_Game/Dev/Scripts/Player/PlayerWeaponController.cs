@@ -236,7 +236,15 @@ namespace SexShot.Dev.Player
                 return;
             }
 
-            var flash = Instantiate(weapon.MuzzleFlashPrefab, _muzzleFlashPoint.position, _muzzleFlashPoint.rotation);
+            // Parent it to the fire point so it stays visually locked while the weapon/model moves.
+            var flash = Instantiate(
+                weapon.MuzzleFlashPrefab,
+                _muzzleFlashPoint.position,
+                _muzzleFlashPoint.rotation,
+                _muzzleFlashPoint);
+
+            flash.transform.localPosition = Vector3.zero;
+            flash.transform.localRotation = Quaternion.identity;
             flash.transform.localScale = Vector3.one * weapon.MuzzleFlashScale;
         }
 
