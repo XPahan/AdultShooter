@@ -1,3 +1,4 @@
+using SexShot.Dev.Vfx;
 using SexShot.Dev.Combat;
 using SexShot.Dev.Config;
 using SexShot.Dev.Weapons;
@@ -10,6 +11,7 @@ namespace SexShot.Dev.Player
     {
         [SerializeField] private PlayerDefinition _definition;
         [SerializeField] private AmmoInventory _ammoInventory;
+        [SerializeField] private PlayerLook _look;
         [SerializeField] private GameObject[] _weaponModels;
 
         private bool _fireHeld;
@@ -19,6 +21,22 @@ namespace SexShot.Dev.Player
         private Transform _muzzle;
         private Transform _muzzleFlashPoint;
         private Transform _shellEjectPoint;
+        private Transform _activeWeaponTransform;
+        private Vector3 _weaponBaseLocalPosition;
+        private Quaternion _weaponBaseLocalRotation;
+        private Vector3 _weaponRecoilPositionOffset;
+        private Vector3 _weaponRecoilRotationOffset;
+
+        private const float ProjectileSpawnOffset = 0.45f;
+        private const float WeaponRecoilReturnSpeed = 18f;
+        private const float WeaponRecoilRotationReturnSpeed = 20f;
+        private const float CameraRecoilPitchMultiplier = 0.45f;
+        private const float CameraRecoilYawMultiplier = 0.45f;
+
+        // Visual recoil for weapon mesh.
+        private const float WeaponMeshKickStrengthMultiplier = 1.6f;
+        private const float WeaponMeshBackMultiplier = 1.9f;
+        private const float WeaponMeshRotationMultiplier = 1.35f;
 
         public WeaponDefinition ActiveWeapon
         {
@@ -35,6 +53,11 @@ namespace SexShot.Dev.Player
 
         private void Awake()
         {
+            if (_look == null)
+            {
+                _look = GetComponent<PlayerLook>();
+            }
+
             UpdateWeaponFirePoints();
         }
 
@@ -46,6 +69,8 @@ namespace SexShot.Dev.Player
 
         private void Update()
         {
+            UpdateWeaponModelRecoil();
+
             if (!_inputEnabled || ActiveWeapon == null)
             {
                 return;
@@ -112,12 +137,19 @@ namespace SexShot.Dev.Player
             _muzzle = null;
             _muzzleFlashPoint = null;
             _shellEjectPoint = null;
+            _activeWeaponTransform = null;
 
             var model = GetActiveWeaponModel();
             if (model == null)
             {
                 return;
             }
+
+            _activeWeaponTransform = model.transform;
+            _weaponBaseLocalPosition = _activeWeaponTransform.localPosition;
+            _weaponBaseLocalRotation = _activeWeaponTransform.localRotation;
+            _weaponRecoilPositionOffset = Vector3.zero;
+            _weaponRecoilRotationOffset = Vector3.zero;
 
             _muzzle = model.transform.Find("Muzzle");
             _muzzleFlashPoint = model.transform.Find("MuzzleFlash");
@@ -170,11 +202,13 @@ namespace SexShot.Dev.Player
 
             SpawnMuzzleFlash(weapon);
             SpawnShell(weapon);
+            ApplyRecoil(weapon);
 
             for (var i = 0; i < weapon.PelletsPerShot; i++)
             {
                 var direction = ApplySpread(_muzzle.forward, weapon.SpreadDegrees);
-                var instance = Instantiate(weapon.ProjectilePrefab, _muzzle.position, Quaternion.LookRotation(direction));
+                var spawnPosition = _muzzle.position + direction * ProjectileSpawnOffset;
+                var instance = Instantiate(weapon.ProjectilePrefab, spawnPosition, Quaternion.LookRotation(direction));
                 var projectile = instance.GetComponent<Projectile>();
                 if (projectile == null)
                 {
@@ -202,7 +236,15 @@ namespace SexShot.Dev.Player
                 return;
             }
 
-            var flash = Instantiate(weapon.MuzzleFlashPrefab, _muzzleFlashPoint.position, _muzzleFlashPoint.rotation);
+            // Parent it to the fire point so it stays visually locked while the weapon/model moves.
+            var flash = Instantiate(
+                weapon.MuzzleFlashPrefab,
+                _muzzleFlashPoint.position,
+                _muzzleFlashPoint.rotation,
+                _muzzleFlashPoint);
+
+            flash.transform.localPosition = Vector3.zero;
+            flash.transform.localRotation = Quaternion.identity;
             flash.transform.localScale = Vector3.one * weapon.MuzzleFlashScale;
         }
 
@@ -218,7 +260,66 @@ namespace SexShot.Dev.Player
                 return;
             }
 
-            Instantiate(weapon.ShellPrefab, _shellEjectPoint.position, _shellEjectPoint.rotation);
+            var shell = Instantiate(weapon.ShellPrefab, _shellEjectPoint.position, _shellEjectPoint.rotation);
+            if (shell.TryGetComponent<EjectedShell>(out var ejectedShell))
+            {
+                ejectedShell.Launch(_shellEjectPoint.right);
+                return;
+            }
+
+            Destroy(shell, 5f);
+        }
+
+        private void ApplyRecoil(WeaponDefinition weapon)
+        {
+            if (_look == null || weapon == null)
+            {
+                return;
+            }
+
+            var yawKick = weapon.RecoilYaw > 0f
+                ? Random.Range(-weapon.RecoilYaw, weapon.RecoilYaw)
+                : 0f;
+            _look.ApplyRecoil(weapon.RecoilPitch * CameraRecoilPitchMultiplier, yawKick * CameraRecoilYawMultiplier);
+            ApplyWeaponModelRecoil(weapon, yawKick);
+        }
+
+        private void ApplyWeaponModelRecoil(WeaponDefinition weapon, float yawKick)
+        {
+            if (_activeWeaponTransform == null || weapon == null)
+            {
+                return;
+            }
+
+            var kickStrength = Mathf.Max(0.02f, weapon.RecoilPitch * 0.012f * WeaponMeshKickStrengthMultiplier);
+            _weaponRecoilPositionOffset += new Vector3(
+                yawKick * 0.0025f,
+                -kickStrength * 0.25f,
+                -kickStrength * WeaponMeshBackMultiplier);
+            _weaponRecoilRotationOffset += new Vector3(
+                weapon.RecoilPitch * 0.9f * WeaponMeshRotationMultiplier,
+                yawKick * 2.5f * WeaponMeshRotationMultiplier,
+                -yawKick * 4f * WeaponMeshRotationMultiplier);
+        }
+
+        private void UpdateWeaponModelRecoil()
+        {
+            if (_activeWeaponTransform == null)
+            {
+                return;
+            }
+
+            _weaponRecoilPositionOffset = Vector3.Lerp(
+                _weaponRecoilPositionOffset,
+                Vector3.zero,
+                Time.deltaTime * WeaponRecoilReturnSpeed);
+            _weaponRecoilRotationOffset = Vector3.Lerp(
+                _weaponRecoilRotationOffset,
+                Vector3.zero,
+                Time.deltaTime * WeaponRecoilRotationReturnSpeed);
+
+            _activeWeaponTransform.localPosition = _weaponBaseLocalPosition + _weaponRecoilPositionOffset;
+            _activeWeaponTransform.localRotation = _weaponBaseLocalRotation * Quaternion.Euler(_weaponRecoilRotationOffset);
         }
 
         private static Vector3 ApplySpread(Vector3 forward, float spreadDegrees)

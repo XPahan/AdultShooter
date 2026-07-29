@@ -14,6 +14,21 @@ namespace SexShot.Dev.Player
 
         public Transform CameraPivot => _cameraPivot;
 
+        public void ApplyRecoil(float pitchKick, float yawKick)
+        {
+            if (_definition == null || _cameraPivot == null)
+            {
+                return;
+            }
+
+            _pitch = Mathf.Clamp(
+                _pitch - pitchKick,
+                _definition.MinPitch,
+                _definition.MaxPitch);
+            transform.Rotate(0f, yawKick, 0f);
+            _cameraPivot.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
+        }
+
         public void SetInputEnabled(bool enabled)
         {
             _inputEnabled = enabled;
