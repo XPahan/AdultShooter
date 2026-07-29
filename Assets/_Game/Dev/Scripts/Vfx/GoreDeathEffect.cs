@@ -56,6 +56,7 @@ namespace SexShot.Dev.Vfx
             go.transform.SetParent(transform, false);
 
             var ps = go.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = ps.main;
             main.duration = 0.15f;
             main.loop = false;
@@ -91,6 +92,7 @@ namespace SexShot.Dev.Vfx
             go.transform.SetParent(transform, false);
 
             var ps = go.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = ps.main;
             main.duration = 0.4f;
             main.loop = false;
@@ -141,6 +143,7 @@ namespace SexShot.Dev.Vfx
             go.transform.SetParent(transform, false);
 
             var ps = go.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = ps.main;
             main.duration = 0.1f;
             main.loop = false;

@@ -12,6 +12,7 @@ namespace SexShot.Dev.Player
         [SerializeField] private PlayerMotor _motor;
         [SerializeField] private PlayerLook _look;
         [SerializeField] private PlayerWeaponController _weapons;
+        [SerializeField] private PlayerDeathView _deathView;
 
         private bool _isAlive = true;
 
@@ -64,6 +65,8 @@ namespace SexShot.Dev.Player
             _isAlive = false;
             _motor?.SetInputEnabled(false);
             _look?.SetInputEnabled(false);
+            _weapons?.SetInputEnabled(false);
+            _deathView?.PlayDeath();
             Died?.Invoke();
         }
     }

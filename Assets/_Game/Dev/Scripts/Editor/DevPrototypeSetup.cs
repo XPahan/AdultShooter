@@ -562,6 +562,7 @@ namespace SexShot.Dev.Editor
             var look = root.AddComponent<PlayerLook>();
             var avatar = root.AddComponent<PlayerAvatar>();
             var weaponController = root.AddComponent<PlayerWeaponController>();
+            var deathView = root.AddComponent<PlayerDeathView>();
 
             var cameraPivot = new GameObject("CameraPivot");
             cameraPivot.transform.SetParent(root.transform);
@@ -602,7 +603,13 @@ namespace SexShot.Dev.Editor
             avatarSo.FindProperty("_motor").objectReferenceValue = motor;
             avatarSo.FindProperty("_look").objectReferenceValue = look;
             avatarSo.FindProperty("_weapons").objectReferenceValue = weaponController;
+            avatarSo.FindProperty("_deathView").objectReferenceValue = deathView;
             avatarSo.ApplyModifiedPropertiesWithoutUndo();
+
+            var deathViewSo = new SerializedObject(deathView);
+            deathViewSo.FindProperty("_cameraPivot").objectReferenceValue = cameraPivot.transform;
+            deathViewSo.FindProperty("_controller").objectReferenceValue = characterController;
+            deathViewSo.ApplyModifiedPropertiesWithoutUndo();
 
             var motorSo = new SerializedObject(motor);
             motorSo.FindProperty("_definition").objectReferenceValue = playerDefinition;
