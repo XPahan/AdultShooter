@@ -35,8 +35,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 74fd11f66ca8110418be57a810d2fad8, type: 3}
   - {fileID: 8300000, guid: 76cfb7f0b7f354545b18c07b7d0bff61, type: 3}
   - {fileID: 8300000, guid: 385137d1f615f524ea78bc1569276ee5, type: 3}
-  _fireSoundVolume: 1
+  _fireSoundVolume: 0.45
   _fireTailSounds:
   - {fileID: 8300000, guid: 2513c21a6dac8c74d94313e4ba892a20, type: 3}
   - {fileID: 8300000, guid: 2fb7045f568cada42835f0a2c1a70047, type: 3}
-  _fireTailSoundVolume: 0.85
+  _fireTailSoundVolume: 0.35

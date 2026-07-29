@@ -59,6 +59,7 @@ namespace SexShot.Dev.Enemies
             }
 
             HideModel();
+            PlayDeathSound();
             SpawnDeathGore();
             Destroy(gameObject, 0.05f);
         }
@@ -182,6 +183,7 @@ namespace SexShot.Dev.Enemies
             }
 
             SpawnMuzzleFlash();
+            PlayAttackSound();
 
             var targetPoint = _player.position + Vector3.up * _definition.AimHeight;
             var origin = _muzzle != null ? _muzzle.position : transform.position + Vector3.up * _definition.AimHeight;
@@ -199,6 +201,36 @@ namespace SexShot.Dev.Enemies
                 _definition.ProjectileDamage,
                 DamageTeam.Enemy,
                 _definition.ImpactPrefab);
+        }
+
+        private void PlayAttackSound()
+        {
+            if (_definition.AttackSound == null)
+            {
+                return;
+            }
+
+            var position = _muzzle != null
+                ? _muzzle.position
+                : transform.position + Vector3.up * _definition.AimHeight;
+            AudioSource.PlayClipAtPoint(
+                _definition.AttackSound,
+                position,
+                _definition.AttackSoundVolume);
+        }
+
+        private void PlayDeathSound()
+        {
+            if (_definition.DeathSound == null)
+            {
+                return;
+            }
+
+            var position = transform.position + Vector3.up * _definition.AimHeight;
+            AudioSource.PlayClipAtPoint(
+                _definition.DeathSound,
+                position,
+                _definition.DeathSoundVolume);
         }
 
         private void SpawnMuzzleFlash()

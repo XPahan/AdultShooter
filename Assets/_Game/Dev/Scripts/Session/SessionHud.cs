@@ -1,4 +1,6 @@
+using SexShot.Dev.Combat;
 using SexShot.Dev.Player;
+using SexShot.Dev.Weapons;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,6 +9,8 @@ namespace SexShot.Dev.Session
     public class SessionHud : MonoBehaviour
     {
         [SerializeField] private GameSession _session;
+        [SerializeField] private Texture2D _healthIcon;
+        [SerializeField] private Texture2D _ammoIcon;
         [SerializeField] private bool _showCrosshair = true;
         [SerializeField] private float _crosshairSize = 6f;
         [SerializeField] private float _crosshairGap = 4f;
@@ -15,9 +19,15 @@ namespace SexShot.Dev.Session
         [SerializeField] private float _sideButtonHeight = 36f;
         [SerializeField] private float _sideButtonMargin = 16f;
         [SerializeField] private float _sideButtonSpacing = 8f;
+        [SerializeField] private float _statusMargin = 24f;
+        [SerializeField] private float _statusIconSize = 56f;
+        [SerializeField] private float _statusRowSpacing = 10f;
+        [SerializeField] private float _statusValueWidth = 90f;
 
         private bool _menuOpen;
         private bool _pausedByMenu;
+        private GUIStyle _statusValueStyle;
+        private GUIStyle _weaponHintStyle;
 
         private void Update()
         {
@@ -42,6 +52,8 @@ namespace SexShot.Dev.Session
                 return;
             }
 
+            EnsureStyles();
+
             if (_menuOpen)
             {
                 DrawSideButtons();
@@ -63,15 +75,8 @@ namespace SexShot.Dev.Session
             var ammo = weapons != null ? weapons.AmmoInventory : null;
             var weapon = weapons != null ? weapons.ActiveWeapon : null;
 
-            var healthText = health != null
-                ? $"HP: {Mathf.CeilToInt(health.CurrentHealth)}/{Mathf.CeilToInt(health.MaxHealth)}"
-                : "HP: -";
-            var weaponText = weapon != null ? weapon.DisplayName : "-";
-            var ammoText = ammo != null && weapon != null
-                ? $"Ammo: {ammo.GetAmmo(weapon.WeaponId)}"
-                : "Ammo: -";
-
-            GUI.Box(new Rect(16f, 16f, 260f, 78f), $"{healthText}\nWeapon: {weaponText}\n{ammoText}\n[1]Pistol [2]Shotgun [3]Rifle");
+            DrawWeaponHint(weapon);
+            DrawStatusPanel(health, ammo, weapon);
 
             if (!_session.IsSessionActive)
             {
@@ -79,6 +84,74 @@ namespace SexShot.Dev.Session
                 var h = 60f;
                 GUI.Box(new Rect((Screen.width - w) * 0.5f, (Screen.height - h) * 0.5f, w, h), "YOU DIED — Session Interrupted");
             }
+        }
+
+        private void EnsureStyles()
+        {
+            if (_statusValueStyle == null)
+            {
+                _statusValueStyle = new GUIStyle(GUI.skin.label)
+                {
+                    alignment = TextAnchor.MiddleLeft,
+                    fontSize = 28,
+                    fontStyle = FontStyle.Bold
+                };
+                _statusValueStyle.normal.textColor = Color.white;
+            }
+
+            if (_weaponHintStyle == null)
+            {
+                _weaponHintStyle = new GUIStyle(GUI.skin.label)
+                {
+                    alignment = TextAnchor.UpperLeft,
+                    fontSize = 14
+                };
+                _weaponHintStyle.normal.textColor = new Color(1f, 1f, 1f, 0.85f);
+            }
+        }
+
+        private void DrawWeaponHint(WeaponDefinition weapon)
+        {
+            var weaponName = weapon != null ? weapon.DisplayName : "-";
+            GUI.Label(
+                new Rect(16f, 16f, 280f, 40f),
+                $"{weaponName}\n[1] Pistol  [2] Shotgun  [3] Rifle",
+                _weaponHintStyle);
+        }
+
+        private void DrawStatusPanel(
+            Health health,
+            AmmoInventory ammo,
+            WeaponDefinition weapon)
+        {
+            var healthValue = health != null
+                ? Mathf.CeilToInt(health.CurrentHealth).ToString()
+                : "-";
+            var ammoValue = ammo != null && weapon != null
+                ? ammo.GetAmmo(weapon.WeaponId).ToString()
+                : "-";
+
+            var rowHeight = _statusIconSize;
+            var panelWidth = _statusIconSize + 12f + _statusValueWidth;
+            var panelHeight = rowHeight * 2f + _statusRowSpacing;
+            var panelX = Screen.width - panelWidth - _statusMargin;
+            var panelY = Screen.height - panelHeight - _statusMargin;
+
+            DrawStatusRow(panelX, panelY, _healthIcon, healthValue);
+            DrawStatusRow(panelX, panelY + rowHeight + _statusRowSpacing, _ammoIcon, ammoValue);
+        }
+
+        private void DrawStatusRow(float x, float y, Texture2D icon, string value)
+        {
+            if (icon != null)
+            {
+                GUI.DrawTexture(new Rect(x, y, _statusIconSize, _statusIconSize), icon, ScaleMode.ScaleToFit);
+            }
+
+            GUI.Label(
+                new Rect(x + _statusIconSize + 12f, y, _statusValueWidth, _statusIconSize),
+                value,
+                _statusValueStyle);
         }
 
         private void ToggleMenu()

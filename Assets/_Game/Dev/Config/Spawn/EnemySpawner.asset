@@ -16,3 +16,7 @@ MonoBehaviour:
   _initialCount: 12
   _maxCount: 25
   _spawnInterval: 3
+  _spawnVfxPrefab: {fileID: 111786, guid: 6fed2eb6a9e2f5e4892b57ce34fbee4b, type: 3}
+  _spawnVfxScale: 1
+  _spawnSound: {fileID: 8300000, guid: a751f915bddd16147bc2c5bd838d945e, type: 3}
+  _spawnSoundVolume: 1

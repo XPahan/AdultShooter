@@ -88,6 +88,7 @@ namespace SexShot.Dev.Spawn
 
             var parent = _enemiesRoot != null ? _enemiesRoot : transform;
             var enemy = Instantiate(_definition.EnemyPrefab, position, rotation, parent);
+            PlaySpawnEffects(position);
             var brain = enemy.GetComponent<Enemies.EnemyBrain>();
             var avatar = enemy.GetComponent<Enemies.EnemyAvatar>();
             brain?.SetPlayer(_player);
@@ -101,6 +102,21 @@ namespace SexShot.Dev.Spawn
                     _aliveCount = Mathf.Max(0, _aliveCount - 1);
                     _occupiedPositions.Remove(position);
                 };
+            }
+        }
+
+        private void PlaySpawnEffects(Vector3 position)
+        {
+            if (_definition.SpawnVfxPrefab != null)
+            {
+                var vfx = Instantiate(_definition.SpawnVfxPrefab, position, Quaternion.identity);
+                vfx.transform.localScale = Vector3.one * _definition.SpawnVfxScale;
+                Destroy(vfx, 5f);
+            }
+
+            if (_definition.SpawnSound != null)
+            {
+                AudioSource.PlayClipAtPoint(_definition.SpawnSound, position, _definition.SpawnSoundVolume);
             }
         }
 

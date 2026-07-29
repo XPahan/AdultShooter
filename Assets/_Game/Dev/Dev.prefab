@@ -116,6 +116,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _session: {fileID: 5969030122383722699}
+  _healthIcon: {fileID: 2800000, guid: 30707e8287ea7a04e8cdf4c4b78f2855, type: 3}
+  _ammoIcon: {fileID: 2800000, guid: 17bcce19871b0214f8c16f8bb216db27, type: 3}
   _showCrosshair: 1
   _crosshairSize: 6
   _crosshairGap: 4
@@ -124,6 +126,10 @@ MonoBehaviour:
   _sideButtonHeight: 36
   _sideButtonMargin: 16
   _sideButtonSpacing: 8
+  _statusMargin: 24
+  _statusIconSize: 56
+  _statusRowSpacing: 10
+  _statusValueWidth: 90
 --- !u!114 &7294996352107342778
 MonoBehaviour:
   m_ObjectHideFlags: 0
