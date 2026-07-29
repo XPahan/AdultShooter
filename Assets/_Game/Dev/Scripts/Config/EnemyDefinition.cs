@@ -23,6 +23,10 @@ namespace SexShot.Dev.Config
         [SerializeField] private GameObject _impactPrefab;
         [SerializeField] private GameObject _deathGorePrefab;
         [SerializeField] private float _deathGoreScale = 1f;
+        [SerializeField] private AudioClip _attackSound;
+        [SerializeField] private float _attackSoundVolume = 1f;
+        [SerializeField] private AudioClip _deathSound;
+        [SerializeField] private float _deathSoundVolume = 1f;
 
         public string DisplayName => _displayName;
         public float MaxHealth => _maxHealth;
@@ -42,5 +46,9 @@ namespace SexShot.Dev.Config
         public GameObject ImpactPrefab => _impactPrefab;
         public GameObject DeathGorePrefab => _deathGorePrefab;
         public float DeathGoreScale => Mathf.Max(0.1f, _deathGoreScale);
+        public AudioClip AttackSound => _attackSound;
+        public float AttackSoundVolume => Mathf.Clamp01(_attackSoundVolume);
+        public AudioClip DeathSound => _deathSound;
+        public float DeathSoundVolume => Mathf.Clamp01(_deathSoundVolume);
     }
 }
