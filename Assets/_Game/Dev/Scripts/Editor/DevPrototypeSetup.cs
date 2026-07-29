@@ -944,6 +944,10 @@ namespace SexShot.Dev.Editor
             var hud = contents.GetComponent<SessionHud>();
             var hudSo = new SerializedObject(hud);
             hudSo.FindProperty("_session").objectReferenceValue = session;
+            hudSo.FindProperty("_healthIcon").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                DevRoot + "/Images/anatomical_heart_bright_black_blot_128x128.png");
+            hudSo.FindProperty("_ammoIcon").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Texture2D>(
+                DevRoot + "/Images/ammo_icon_black_splotch_128x128.png");
             hudSo.ApplyModifiedPropertiesWithoutUndo();
 
             PrefabUtility.SaveAsPrefabAsset(contents, devPath);

@@ -14,3 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _playerPrefab: {fileID: 959608360187371947, guid: cfd4a288b7a000c4eada4472892b4a39, type: 3}
   _pauseOnPlayerDeath: 1
+  _backgroundMusic: {fileID: 8300000, guid: 1b9ba80b914b540f7b967496a060e838, type: 3}
+  _backgroundMusicVolume: 0.35

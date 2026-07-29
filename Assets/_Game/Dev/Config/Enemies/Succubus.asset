@@ -30,3 +30,7 @@ MonoBehaviour:
   _impactPrefab: {fileID: 1879272669879180, guid: 2c076ddee495ebf48b7388052e61bf0b, type: 3}
   _deathGorePrefab: {fileID: 3623953947613824425, guid: ab6cb6d6b8f5c9947998b8d1c7478a3f, type: 3}
   _deathGoreScale: 1
+  _attackSound: {fileID: 8300000, guid: 07812ee882e01ad42a40fc022324a436, type: 3}
+  _attackSoundVolume: 1
+  _deathSound: {fileID: 8300000, guid: d6f09654f4f8f604e98c13da21e2a5a1, type: 3}
+  _deathSoundVolume: 6
