@@ -24,6 +24,18 @@ namespace SexShot.Dev.Player
         public PlayerDefinition Definition => _definition;
         public PlayerWeaponController Weapons => _weapons;
 
+        public void SetGameplayInputEnabled(bool enabled)
+        {
+            if (!IsAlive && enabled)
+            {
+                return;
+            }
+
+            _motor?.SetInputEnabled(enabled);
+            _look?.SetInputEnabled(enabled);
+            _weapons?.SetInputEnabled(enabled);
+        }
+
         public void TakeDamage(float amount, DamageTeam sourceTeam)
         {
             if (!IsAlive || sourceTeam == Team)
