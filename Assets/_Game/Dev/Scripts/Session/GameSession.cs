@@ -17,6 +17,7 @@ namespace SexShot.Dev.Session
 
         private PlayerAvatar _player;
         private bool _sessionActive;
+        private AudioSource _musicSource;
 
         public PlayerAvatar Player => _player;
         public bool IsSessionActive => _sessionActive;
@@ -62,6 +63,7 @@ namespace SexShot.Dev.Session
                 _ammoSpawner.SpawnPickups(spawnPosition);
             }
 
+            StartBackgroundMusic();
             _sessionActive = true;
         }
 
@@ -99,6 +101,29 @@ namespace SexShot.Dev.Session
 #else
             Application.Quit();
 #endif
+        }
+
+        private void StartBackgroundMusic()
+        {
+            if (_definition.BackgroundMusic == null)
+            {
+                return;
+            }
+
+            if (_musicSource == null)
+            {
+                _musicSource = gameObject.AddComponent<AudioSource>();
+                _musicSource.playOnAwake = false;
+                _musicSource.loop = true;
+                _musicSource.spatialBlend = 0f;
+            }
+
+            _musicSource.clip = _definition.BackgroundMusic;
+            _musicSource.volume = _definition.BackgroundMusicVolume;
+            if (!_musicSource.isPlaying)
+            {
+                _musicSource.Play();
+            }
         }
 
         private void OnDestroy()
