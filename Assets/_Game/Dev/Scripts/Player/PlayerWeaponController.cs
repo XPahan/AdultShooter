@@ -201,6 +201,7 @@ namespace SexShot.Dev.Player
             }
 
             SpawnMuzzleFlash(weapon);
+            PlayFireSound(weapon);
             SpawnShell(weapon);
             ApplyRecoil(weapon);
 
@@ -222,6 +223,33 @@ namespace SexShot.Dev.Player
                     DamageTeam.Player,
                     weapon.ImpactPrefab);
             }
+        }
+
+        private void PlayFireSound(WeaponDefinition weapon)
+        {
+            if (_muzzle == null)
+            {
+                return;
+            }
+
+            PlayRandomClip(weapon.FireSounds, _muzzle.position, weapon.FireSoundVolume);
+            PlayRandomClip(weapon.FireTailSounds, _muzzle.position, weapon.FireTailSoundVolume);
+        }
+
+        private static void PlayRandomClip(AudioClip[] clips, Vector3 position, float volume)
+        {
+            if (clips == null || clips.Length == 0 || volume <= 0f)
+            {
+                return;
+            }
+
+            var clip = clips[Random.Range(0, clips.Length)];
+            if (clip == null)
+            {
+                return;
+            }
+
+            AudioSource.PlayClipAtPoint(clip, position, volume);
         }
 
         private void SpawnMuzzleFlash(WeaponDefinition weapon)
