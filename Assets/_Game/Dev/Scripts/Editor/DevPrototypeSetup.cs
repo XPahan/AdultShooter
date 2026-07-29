@@ -79,6 +79,20 @@ namespace SexShot.Dev.Editor
             Debug.Log("SexShot: Muzzle, MuzzleFlash and ShellEject added to weapon prefabs.");
         }
 
+        [MenuItem("SexShot/Dev/Rebuild Ammo Pickup Prefab")]
+        public static void RebuildAmmoPickupPrefabMenu()
+        {
+            var definition = AssetDatabase.LoadAssetAtPath<AmmoPickupDefinition>(ConfigRoot + "/Ammo/AmmoPickup.asset");
+            if (definition == null)
+            {
+                definition = CreateAmmoPickupDefinition();
+            }
+
+            CreateAmmoPickupPrefab(definition);
+            AssetDatabase.SaveAssets();
+            Debug.Log("SexShot: Ammo pickup prefab rebuilt.");
+        }
+
         [MenuItem("SexShot/Dev/Setup Prototype Prefabs")]
         public static void SetupAll()
         {
@@ -650,6 +664,9 @@ namespace SexShot.Dev.Editor
             capsule.isTrigger = true;
             FitCapsuleToRenderers(root.transform, capsule);
 
+            var controller = root.AddComponent<CharacterController>();
+            FitCharacterControllerFromCapsule(capsule, controller);
+
             root.AddComponent<Health>();
             root.AddComponent<EnemyAvatar>();
             root.AddComponent<EnemyBrain>();
@@ -672,6 +689,12 @@ namespace SexShot.Dev.Editor
             var avatar = contents.GetComponent<EnemyAvatar>();
             var brain = contents.GetComponent<EnemyBrain>();
             var capsule = contents.GetComponent<CapsuleCollider>();
+            var controller = contents.GetComponent<CharacterController>();
+            if (controller == null)
+            {
+                controller = contents.AddComponent<CharacterController>();
+            }
+
             var muzzle = contents.transform.Find("Muzzle");
             var model = contents.transform.Find("Model");
             var animator = model != null ? model.GetComponent<Animator>() : contents.GetComponentInChildren<Animator>();
@@ -688,6 +711,11 @@ namespace SexShot.Dev.Editor
             if (capsule != null)
             {
                 FitCapsuleToRenderers(contents.transform, capsule);
+                if (controller != null)
+                {
+                    FitCharacterControllerFromCapsule(capsule, controller);
+                }
+
                 if (muzzle != null)
                 {
                     muzzle.localPosition = GetMuzzleLocalPosition(contents.transform, capsule);
@@ -718,6 +746,7 @@ namespace SexShot.Dev.Editor
                 brainSo.FindProperty("_muzzle").objectReferenceValue = muzzle;
                 brainSo.FindProperty("_animator").objectReferenceValue = animator;
                 brainSo.FindProperty("_hitCollider").objectReferenceValue = capsule;
+                brainSo.FindProperty("_controller").objectReferenceValue = controller;
                 brainSo.ApplyModifiedPropertiesWithoutUndo();
             }
 
@@ -731,31 +760,43 @@ namespace SexShot.Dev.Editor
             var root = new GameObject("AmmoPickup");
             var col = root.AddComponent<SphereCollider>();
             col.isTrigger = true;
-            col.radius = 0.8f;
+            col.radius = 1.4f;
             var pickup = root.AddComponent<AmmoPickup>();
 
             var vfx = new GameObject("VfxLightBeam");
             vfx.transform.SetParent(root.transform);
             vfx.transform.localPosition = Vector3.zero;
-            var light = vfx.AddComponent<Light>();
-            light.type = LightType.Point;
-            light.color = new Color(0.45f, 0.85f, 1f);
-            light.intensity = 3.5f;
-            light.range = 4f;
 
+            const float beamHeightScale = 3.6f;
             var beam = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             beam.name = "Beam";
             beam.transform.SetParent(vfx.transform);
-            beam.transform.localPosition = new Vector3(0f, 1.2f, 0f);
-            beam.transform.localScale = new Vector3(0.15f, 1.2f, 0.15f);
+            beam.transform.localPosition = new Vector3(0f, beamHeightScale, 0f);
+            beam.transform.localScale = new Vector3(1.5f, beamHeightScale, 1.5f);
             Object.DestroyImmediate(beam.GetComponent<Collider>());
-            var mat = DevMaterialLibrary.CreateUrpLitMaterial(
+            var beamRenderer = beam.GetComponent<MeshRenderer>();
+            beamRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            beamRenderer.receiveShadows = false;
+            var beamMat = DevMaterialLibrary.CreateUrpTransparentMaterial(
                 PrefabRoot + "/Ammo/AmmoBeam_Mat.mat",
-                new Color(0.4f, 0.9f, 1f, 1f));
-            mat.EnableKeyword("_EMISSION");
-            mat.SetColor("_EmissionColor", new Color(0.4f, 0.9f, 1f) * 2f);
-            EditorUtility.SetDirty(mat);
-            beam.GetComponent<MeshRenderer>().sharedMaterial = mat;
+                new Color(0.4f, 0.9f, 1f, 0.24f));
+            beamMat.SetColor("_EmissionColor", new Color(0.4f, 0.9f, 1f) * 4f);
+            EditorUtility.SetDirty(beamMat);
+            beamRenderer.sharedMaterial = beamMat;
+
+            var bottomGlow = new GameObject("BottomGlow");
+            bottomGlow.transform.SetParent(vfx.transform);
+            bottomGlow.transform.localPosition = new Vector3(0f, 0.12f, 0f);
+            bottomGlow.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
+            var light = bottomGlow.AddComponent<Light>();
+            light.type = LightType.Spot;
+            light.color = new Color(0.55f, 0.9f, 1f);
+            light.intensity = 40f;
+            light.range = beamHeightScale * 2f + 2f;
+            light.spotAngle = 78f;
+            light.innerSpotAngle = 55f;
+
+            SetupAmmoPickupCenterVisual(vfx.transform);
 
             var laserPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(
                 PrefabRoot + "/Vfx/LaserBlueMuzzleFlare.prefab");
@@ -771,16 +812,13 @@ namespace SexShot.Dev.Editor
                 var flare = (GameObject)PrefabUtility.InstantiatePrefab(laserPrefab);
                 flare.name = "EffectCoreFlare";
                 flare.transform.SetParent(vfx.transform);
-                flare.transform.localPosition = new Vector3(0f, 0.2f, 0f);
-                flare.transform.localScale = Vector3.one * 0.5f;
-                foreach (var mb in flare.GetComponentsInChildren<MonoBehaviour>(true))
-                {
-                    if (mb != null)
-                    {
-                        Object.DestroyImmediate(mb);
-                    }
-                }
+                flare.transform.localPosition = new Vector3(0f, 0.08f, 0f);
+                flare.transform.localScale = Vector3.one * 4.5f;
+                CleanupAmmoPickupVisual(flare);
             }
+
+            col.center = new Vector3(0f, beamHeightScale, 0f);
+            col.radius = beamHeightScale + 0.8f;
 
             var so = new SerializedObject(pickup);
             so.FindProperty("_definition").objectReferenceValue = definition;
@@ -789,6 +827,46 @@ namespace SexShot.Dev.Editor
 
             PrefabUtility.SaveAsPrefabAsset(root, path);
             Object.DestroyImmediate(root);
+        }
+
+        private static void SetupAmmoPickupCenterVisual(Transform parent)
+        {
+            EnsureBrassShellPrefab();
+            var shellPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DevBrassShellPrefab);
+            if (shellPrefab == null)
+            {
+                return;
+            }
+
+            var visualRoot = (GameObject)PrefabUtility.InstantiatePrefab(shellPrefab);
+            visualRoot.name = "CenterVisual";
+            visualRoot.transform.SetParent(parent, false);
+            visualRoot.transform.localPosition = new Vector3(0f, 0.85f, 0f);
+            visualRoot.transform.localRotation = Quaternion.identity;
+            visualRoot.transform.localScale = Vector3.one * 1.2f;
+
+            CleanupAmmoPickupVisual(visualRoot);
+        }
+
+        private static void CleanupAmmoPickupVisual(GameObject root)
+        {
+            foreach (var collider in root.GetComponentsInChildren<Collider>(true))
+            {
+                Object.DestroyImmediate(collider);
+            }
+
+            foreach (var rigidbody in root.GetComponentsInChildren<Rigidbody>(true))
+            {
+                Object.DestroyImmediate(rigidbody);
+            }
+
+            foreach (var behaviour in root.GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                if (behaviour != null)
+                {
+                    Object.DestroyImmediate(behaviour);
+                }
+            }
         }
 
         private static void CreateSpawnPointPrefabs()
@@ -840,11 +918,15 @@ namespace SexShot.Dev.Editor
 
             var session = contents.AddComponent<GameSession>();
             var spawner = contents.AddComponent<EnemySpawner>();
+            var ammoSpawner = contents.AddComponent<AmmoSpawner>();
             contents.AddComponent<SessionHud>();
+
+            var ammoPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabRoot + "/Ammo/AmmoPickup.prefab");
 
             var sessionSo = new SerializedObject(session);
             sessionSo.FindProperty("_definition").objectReferenceValue = sessionDefinition;
             sessionSo.FindProperty("_enemySpawner").objectReferenceValue = spawner;
+            sessionSo.FindProperty("_ammoSpawner").objectReferenceValue = ammoSpawner;
             sessionSo.FindProperty("_runtimeRoot").objectReferenceValue = runtime.transform;
             sessionSo.ApplyModifiedPropertiesWithoutUndo();
 
@@ -852,6 +934,12 @@ namespace SexShot.Dev.Editor
             spawnerSo.FindProperty("_definition").objectReferenceValue = spawnerDefinition;
             spawnerSo.FindProperty("_enemiesRoot").objectReferenceValue = runtime.transform;
             spawnerSo.ApplyModifiedPropertiesWithoutUndo();
+
+            var ammoSpawnerSo = new SerializedObject(ammoSpawner);
+            ammoSpawnerSo.FindProperty("_ammoPrefab").objectReferenceValue = ammoPrefab;
+            ammoSpawnerSo.FindProperty("_pickupsRoot").objectReferenceValue = runtime.transform;
+            ammoSpawnerSo.FindProperty("_spawnCount").intValue = 16;
+            ammoSpawnerSo.ApplyModifiedPropertiesWithoutUndo();
 
             var hud = contents.GetComponent<SessionHud>();
             var hudSo = new SerializedObject(hud);
@@ -876,47 +964,13 @@ namespace SexShot.Dev.Editor
                 new Color(0.35f, 0.38f, 0.32f));
             ground.GetComponent<MeshRenderer>().sharedMaterial = groundMat;
 
+            root.AddComponent<MapSpawnArea>();
+
             var playerSpawnPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabRoot + "/Spawn/PlayerSpawnPoint.prefab");
-            var enemySpawnPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabRoot + "/Spawn/EnemySpawnPoint.prefab");
-            var ammoPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabRoot + "/Ammo/AmmoPickup.prefab");
 
             var playerSpawn = (GameObject)PrefabUtility.InstantiatePrefab(playerSpawnPrefab);
             playerSpawn.transform.SetParent(root.transform);
             playerSpawn.transform.localPosition = new Vector3(0f, 0.1f, 0f);
-
-            Vector3[] enemyPositions =
-            {
-                new Vector3(8f, 0.1f, 8f),
-                new Vector3(-8f, 0.1f, 8f),
-                new Vector3(8f, 0.1f, -8f),
-                new Vector3(-8f, 0.1f, -8f),
-                new Vector3(0f, 0.1f, 10f),
-                new Vector3(10f, 0.1f, 0f),
-                new Vector3(-10f, 0.1f, 0f),
-                new Vector3(0f, 0.1f, -10f)
-            };
-            for (var i = 0; i < enemyPositions.Length; i++)
-            {
-                var spawn = (GameObject)PrefabUtility.InstantiatePrefab(enemySpawnPrefab);
-                spawn.name = "EnemySpawnPoint_" + (i + 1);
-                spawn.transform.SetParent(root.transform);
-                spawn.transform.localPosition = enemyPositions[i];
-            }
-
-            Vector3[] ammoPositions =
-            {
-                new Vector3(4f, 0.1f, 2f),
-                new Vector3(-4f, 0.1f, -2f),
-                new Vector3(2f, 0.1f, -5f),
-                new Vector3(-6f, 0.1f, 4f)
-            };
-            for (var i = 0; i < ammoPositions.Length; i++)
-            {
-                var ammo = (GameObject)PrefabUtility.InstantiatePrefab(ammoPrefab);
-                ammo.name = "AmmoPickup_" + (i + 1);
-                ammo.transform.SetParent(root.transform);
-                ammo.transform.localPosition = ammoPositions[i];
-            }
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, arenaPath);
             Object.DestroyImmediate(root);
@@ -1060,6 +1114,17 @@ namespace SexShot.Dev.Editor
             capsule.radius = Mathf.Max(Mathf.Max(bounds.size.x, bounds.size.z) * 0.5f - padding, 0.1f);
             capsule.height = Mathf.Max(bounds.size.y - padding, capsule.radius * 2f);
             capsule.center = root.InverseTransformPoint(bounds.center);
+        }
+
+        private static void FitCharacterControllerFromCapsule(CapsuleCollider capsule, CharacterController controller)
+        {
+            controller.radius = capsule.radius;
+            controller.height = Mathf.Max(capsule.height, controller.radius * 2f);
+            controller.center = capsule.center;
+            controller.slopeLimit = 45f;
+            controller.stepOffset = Mathf.Min(controller.height * 0.25f, 0.35f);
+            controller.skinWidth = 0.08f;
+            controller.minMoveDistance = 0.001f;
         }
 
         private static Vector3 GetMuzzleLocalPosition(Transform root, CapsuleCollider capsule)

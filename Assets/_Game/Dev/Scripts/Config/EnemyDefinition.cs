@@ -10,6 +10,7 @@ namespace SexShot.Dev.Config
         [SerializeField] private float _staggerDuration = 0.35f;
         [SerializeField] private float _moveSpeed = 1.8f;
         [SerializeField] private float _turnSpeed = 8f;
+        [SerializeField] private float _gravity = -20f;
         [SerializeField] private float _attackRange = 10f;
         [SerializeField] private float _attackCooldown = 2f;
         [SerializeField] private float _projectileDamage = 2f;
@@ -28,6 +29,7 @@ namespace SexShot.Dev.Config
         public float StaggerDuration => _staggerDuration;
         public float MoveSpeed => _moveSpeed;
         public float TurnSpeed => _turnSpeed;
+        public float Gravity => _gravity;
         public float AttackRange => _attackRange;
         public float AttackCooldown => _attackCooldown;
         public float ProjectileDamage => _projectileDamage;

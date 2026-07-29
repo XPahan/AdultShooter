@@ -91,6 +91,28 @@ namespace SexShot.Dev.Editor
             return material;
         }
 
+        public static Material CreateUrpTransparentMaterial(string path, Color color)
+        {
+            var material = CreateUrpLitMaterial(path, color);
+            material.SetFloat("_Surface", 1f);
+            material.SetFloat("_Blend", 0f);
+            material.SetFloat("_AlphaClip", 0f);
+            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_SrcBlendAlpha", (float)UnityEngine.Rendering.BlendMode.One);
+            material.SetFloat("_DstBlendAlpha", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            material.SetFloat("_ZWrite", 0f);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+            material.DisableKeyword("_ALPHATEST_ON");
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            material.SetColor("_EmissionColor", color * 2.5f);
+            material.EnableKeyword("_EMISSION");
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
         public static void RemapRendererMaterials(GameObject root)
         {
             foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
