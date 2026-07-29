@@ -3,6 +3,7 @@ using SexShot.Dev.Player;
 using SexShot.Dev.Spawn;
 using SexShot.Dev.WorldMarkers;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace SexShot.Dev.Session
 {
@@ -76,6 +77,22 @@ namespace SexShot.Dev.Session
             }
 
             Debug.Log("GameSession ended — player died.");
+        }
+
+        public void RestartSession()
+        {
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        public void QuitGame()
+        {
+            Time.timeScale = 1f;
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
         }
 
         private void OnDestroy()

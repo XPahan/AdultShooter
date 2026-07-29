@@ -1,5 +1,6 @@
 using SexShot.Dev.Player;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace SexShot.Dev.Session
 {
@@ -10,15 +11,48 @@ namespace SexShot.Dev.Session
         [SerializeField] private float _crosshairSize = 6f;
         [SerializeField] private float _crosshairGap = 4f;
         [SerializeField] private float _crosshairThickness = 2f;
+        [SerializeField] private float _sideButtonWidth = 110f;
+        [SerializeField] private float _sideButtonHeight = 36f;
+        [SerializeField] private float _sideButtonMargin = 16f;
+        [SerializeField] private float _sideButtonSpacing = 8f;
 
-        private void OnGUI()
+        private bool _menuOpen;
+        private bool _pausedByMenu;
+
+        private void Update()
         {
-            if (_session == null || _session.Player == null)
+            if (_session == null)
             {
                 return;
             }
 
-            if (_showCrosshair && _session.IsSessionActive)
+            var keyboard = Keyboard.current;
+            if (keyboard == null || !keyboard.escapeKey.wasPressedThisFrame)
+            {
+                return;
+            }
+
+            ToggleMenu();
+        }
+
+        private void OnGUI()
+        {
+            if (_session == null)
+            {
+                return;
+            }
+
+            if (_menuOpen)
+            {
+                DrawSideButtons();
+            }
+
+            if (_session.Player == null)
+            {
+                return;
+            }
+
+            if (_showCrosshair && _session.IsSessionActive && !_menuOpen)
             {
                 DrawCrosshair();
             }
@@ -47,6 +81,56 @@ namespace SexShot.Dev.Session
             }
         }
 
+        private void ToggleMenu()
+        {
+            _menuOpen = !_menuOpen;
+            if (_menuOpen)
+            {
+                OpenMenu();
+            }
+            else
+            {
+                CloseMenu();
+            }
+        }
+
+        private void OpenMenu()
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
+            if (CanResumeGameplay())
+            {
+                _session.Player.SetGameplayInputEnabled(false);
+                if (Time.timeScale > 0f)
+                {
+                    Time.timeScale = 0f;
+                    _pausedByMenu = true;
+                }
+            }
+        }
+
+        private void CloseMenu()
+        {
+            if (_pausedByMenu)
+            {
+                Time.timeScale = 1f;
+                _pausedByMenu = false;
+            }
+
+            if (CanResumeGameplay())
+            {
+                _session.Player.SetGameplayInputEnabled(true);
+            }
+        }
+
+        private bool CanResumeGameplay()
+        {
+            return _session.IsSessionActive
+                && _session.Player != null
+                && _session.Player.IsAlive;
+        }
+
         private void DrawCrosshair()
         {
             var centerX = Screen.width * 0.5f;
@@ -65,6 +149,23 @@ namespace SexShot.Dev.Session
         private static void DrawCrosshairLine(float x, float y, float width, float height)
         {
             GUI.DrawTexture(new Rect(x, y, width, height), Texture2D.whiteTexture);
+        }
+
+        private void DrawSideButtons()
+        {
+            var totalHeight = _sideButtonHeight * 2f + _sideButtonSpacing;
+            var x = Screen.width - _sideButtonWidth - _sideButtonMargin;
+            var y = (Screen.height - totalHeight) * 0.5f;
+
+            if (GUI.Button(new Rect(x, y, _sideButtonWidth, _sideButtonHeight), "Перезапуск"))
+            {
+                _session.RestartSession();
+            }
+
+            if (GUI.Button(new Rect(x, y + _sideButtonHeight + _sideButtonSpacing, _sideButtonWidth, _sideButtonHeight), "Выход"))
+            {
+                _session.QuitGame();
+            }
         }
     }
 }

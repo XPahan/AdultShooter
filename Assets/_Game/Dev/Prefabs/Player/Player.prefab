@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 7043002734226208250}
   - component: {fileID: 4332881742684025173}
   - component: {fileID: 714942788368752591}
+  - component: {fileID: 8823456789012345678}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -142,6 +143,28 @@ MonoBehaviour:
   _motor: {fileID: 1206466381772598729}
   _look: {fileID: 7043002734226208250}
   _weapons: {fileID: 714942788368752591}
+  _deathView: {fileID: 8823456789012345678}
+--- !u!114 &8823456789012345678
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 959608360187371947}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8f3c2e1476b4920b5d1e9f63a7482c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _cameraPivot: {fileID: 6306225122597246798}
+  _controller: {fileID: 3104596108445428358}
+  _fallDuration: 1.25
+  _targetPitch: -82
+  _cameraDrop: 1.15
+  _bodyDrop: 0.85
+  _rollAngle: 16
+  _maxOverlayAlpha: 0.72
+  _maxVignetteAlpha: 0.88
 --- !u!114 &714942788368752591
 MonoBehaviour:
   m_ObjectHideFlags: 0
