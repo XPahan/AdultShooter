@@ -156,6 +156,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _definition: {fileID: 11400000, guid: dc5af11971789794dadf105d81c18403, type: 2}
   _ammoInventory: {fileID: 2868287762959080931}
+  _look: {fileID: 7043002734226208250}
   _weaponModels:
   - {fileID: 8917369867179090147}
   - {fileID: 802927129043463890}

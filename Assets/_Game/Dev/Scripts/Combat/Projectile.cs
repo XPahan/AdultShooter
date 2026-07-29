@@ -58,15 +58,7 @@ namespace SexShot.Dev.Combat
             }
 
             var radius = GetWorldRadius();
-            if (Physics.SphereCast(
-                    _previousPosition,
-                    radius,
-                    _direction,
-                    out var hit,
-                    distance,
-                    ~0,
-                    QueryTriggerInteraction.Collide)
-                && TryHit(hit.collider, hit.point, hit.normal))
+            if (TryMoveAndHit(distance, radius))
             {
                 return;
             }
@@ -76,8 +68,47 @@ namespace SexShot.Dev.Combat
             _previousPosition = nextPosition;
         }
 
+        private bool TryMoveAndHit(float distance, float radius)
+        {
+            var hits = Physics.SphereCastAll(
+                _previousPosition,
+                radius,
+                _direction,
+                distance,
+                ~0,
+                QueryTriggerInteraction.Collide);
+
+            System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+            foreach (var hit in hits)
+            {
+                if (ShouldIgnoreCollider(hit.collider))
+                {
+                    continue;
+                }
+
+                if (TryHit(hit.collider, hit.point, hit.normal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool ShouldIgnoreCollider(Collider other)
+        {
+            var damageable = DamageableUtility.Find(other);
+            return damageable != null && damageable.Team == _team;
+        }
+
         private void OnTriggerEnter(Collider other)
         {
+            if (ShouldIgnoreCollider(other))
+            {
+                return;
+            }
+
             TryHit(other, transform.position, -_direction);
         }
 

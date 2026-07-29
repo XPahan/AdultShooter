@@ -22,6 +22,8 @@ namespace SexShot.Dev.Weapons
         [SerializeField] private GameObject _impactPrefab;
         [SerializeField] private GameObject _shellPrefab;
         [SerializeField] private bool _ejectShells;
+        [SerializeField] private float _recoilPitch = 1f;
+        [SerializeField] private float _recoilYaw = 0.35f;
 
         public WeaponId WeaponId => _weaponId;
         public string DisplayName => string.IsNullOrWhiteSpace(_displayName) ? _weaponId.ToString() : _displayName;
@@ -40,5 +42,7 @@ namespace SexShot.Dev.Weapons
         public GameObject ImpactPrefab => _impactPrefab;
         public GameObject ShellPrefab => _shellPrefab;
         public bool EjectShells => _ejectShells;
+        public float RecoilPitch => Mathf.Max(0f, _recoilPitch);
+        public float RecoilYaw => Mathf.Max(0f, _recoilYaw);
     }
 }
