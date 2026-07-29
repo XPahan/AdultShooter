@@ -12,6 +12,7 @@ namespace SexShot.Dev.Player
         [SerializeField] private PlayerMotor _motor;
         [SerializeField] private PlayerLook _look;
         [SerializeField] private PlayerWeaponController _weapons;
+        [SerializeField] private PlayerDeathView _deathView;
 
         private bool _isAlive = true;
 
@@ -22,6 +23,18 @@ namespace SexShot.Dev.Player
         public Health Health => _health;
         public PlayerDefinition Definition => _definition;
         public PlayerWeaponController Weapons => _weapons;
+
+        public void SetGameplayInputEnabled(bool enabled)
+        {
+            if (!IsAlive && enabled)
+            {
+                return;
+            }
+
+            _motor?.SetInputEnabled(enabled);
+            _look?.SetInputEnabled(enabled);
+            _weapons?.SetInputEnabled(enabled);
+        }
 
         public void TakeDamage(float amount, DamageTeam sourceTeam)
         {
@@ -64,6 +77,8 @@ namespace SexShot.Dev.Player
             _isAlive = false;
             _motor?.SetInputEnabled(false);
             _look?.SetInputEnabled(false);
+            _weapons?.SetInputEnabled(false);
+            _deathView?.PlayDeath();
             Died?.Invoke();
         }
     }
