@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using SexShot.Dev.Config;
 using SexShot.Dev.WorldMarkers;
 using UnityEngine;
@@ -8,10 +9,16 @@ namespace SexShot.Dev.Spawn
     {
         [SerializeField] private SpawnerDefinition _definition;
         [SerializeField] private Transform _enemiesRoot;
+        [SerializeField] private float _clearanceRadius = 1f;
+        [SerializeField] private float _capsuleHeight = 2f;
+        [SerializeField] private float _minDistanceFromPlayer = 8f;
+        [SerializeField] private float _minSeparation = 4f;
 
         private int _aliveCount;
         private Transform _player;
         private EnemySpawnPoint[] _spawnPoints;
+        private MapSpawnArea _spawnArea;
+        private readonly List<Vector3> _occupiedPositions = new();
         private float _spawnTimer;
         private bool _running;
 
@@ -26,7 +33,9 @@ namespace SexShot.Dev.Spawn
             }
 
             _player = player;
+            _spawnArea = MapSpawnArea.GetOrCreate();
             _spawnPoints = FindObjectsByType<EnemySpawnPoint>(FindObjectsSortMode.None);
+            _occupiedPositions.Clear();
             _aliveCount = 0;
             _spawnTimer = 0f;
             _running = true;
@@ -62,7 +71,7 @@ namespace SexShot.Dev.Spawn
 
         private void SpawnOne()
         {
-            if (_definition.EnemyPrefab == null || _spawnPoints == null || _spawnPoints.Length == 0 || _player == null)
+            if (_definition.EnemyPrefab == null || _player == null)
             {
                 return;
             }
@@ -72,9 +81,13 @@ namespace SexShot.Dev.Spawn
                 return;
             }
 
-            var point = _spawnPoints[Random.Range(0, _spawnPoints.Length)];
+            if (!TryGetSpawnPose(out var position, out var rotation))
+            {
+                return;
+            }
+
             var parent = _enemiesRoot != null ? _enemiesRoot : transform;
-            var enemy = Instantiate(_definition.EnemyPrefab, point.transform.position, point.transform.rotation, parent);
+            var enemy = Instantiate(_definition.EnemyPrefab, position, rotation, parent);
             var brain = enemy.GetComponent<Enemies.EnemyBrain>();
             var avatar = enemy.GetComponent<Enemies.EnemyAvatar>();
             brain?.SetPlayer(_player);
@@ -82,8 +95,42 @@ namespace SexShot.Dev.Spawn
             if (avatar != null)
             {
                 _aliveCount++;
-                avatar.Died += () => _aliveCount = Mathf.Max(0, _aliveCount - 1);
+                _occupiedPositions.Add(position);
+                avatar.Died += () =>
+                {
+                    _aliveCount = Mathf.Max(0, _aliveCount - 1);
+                    _occupiedPositions.Remove(position);
+                };
             }
+        }
+
+        private bool TryGetSpawnPose(out Vector3 position, out Quaternion rotation)
+        {
+            position = default;
+            rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
+
+            if (_spawnArea != null
+                && _spawnArea.TryGetSpawnPosition(
+                    _clearanceRadius,
+                    _capsuleHeight,
+                    _player.position,
+                    _minDistanceFromPlayer,
+                    _occupiedPositions,
+                    _minSeparation,
+                    out position))
+            {
+                return true;
+            }
+
+            if (_spawnPoints == null || _spawnPoints.Length == 0)
+            {
+                return false;
+            }
+
+            var point = _spawnPoints[Random.Range(0, _spawnPoints.Length)];
+            position = point.transform.position;
+            rotation = point.transform.rotation;
+            return true;
         }
     }
 }

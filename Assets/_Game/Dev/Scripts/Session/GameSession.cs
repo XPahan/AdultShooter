@@ -11,6 +11,7 @@ namespace SexShot.Dev.Session
     {
         [SerializeField] private SessionDefinition _definition;
         [SerializeField] private EnemySpawner _enemySpawner;
+        [SerializeField] private AmmoSpawner _ammoSpawner;
         [SerializeField] private Transform _runtimeRoot;
         [SerializeField] private Camera _sceneCameraToDisable;
 
@@ -54,6 +55,11 @@ namespace SexShot.Dev.Session
             if (_enemySpawner != null)
             {
                 _enemySpawner.StartSpawning(playerGo.transform);
+            }
+
+            if (_ammoSpawner != null)
+            {
+                _ammoSpawner.SpawnPickups(spawnPosition);
             }
 
             _sessionActive = true;
