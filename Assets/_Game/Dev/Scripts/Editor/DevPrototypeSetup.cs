@@ -129,7 +129,9 @@ namespace SexShot.Dev.Editor
                 startingAmmo: 30,
                 ammoPickup: 5,
                 playerProjectile,
-                pistolModel);
+                pistolModel,
+                recoilPitch: 1.5f,
+                recoilYaw: 0.5f);
             var shotgun = CreateWeaponAsset(
                 WeaponsConfigRoot + "/Shotgun.asset",
                 WeaponId.Shotgun,
@@ -143,7 +145,9 @@ namespace SexShot.Dev.Editor
                 startingAmmo: 10,
                 ammoPickup: 2,
                 playerProjectile,
-                shotgunModel);
+                shotgunModel,
+                recoilPitch: 7.5f,
+                recoilYaw: 2.2f);
             var rifleProjectile = CreateRifleGoldFireProjectile(
                 PrefabRoot + "/Projectiles/RifleGoldFireProjectile.prefab",
                 playerProjectileDef);
@@ -165,7 +169,9 @@ namespace SexShot.Dev.Editor
                 LoadEffectCorePrefab(EffectCoreBulletRoot + "/Bullet_GoldFire_Small_Impact_Template.prefab"),
                 LoadEffectCorePrefab(EffectCoreShellPrefab),
                 ejectShells: true,
-                muzzleFlashScale: 0.25f);
+                muzzleFlashScale: 0.25f,
+                recoilPitch: 0.45f,
+                recoilYaw: 0.2f);
 
             CreateEnemyAnimator();
             var enemyDefinition = CreateEnemyDefinition(enemyProjectile);
@@ -419,7 +425,9 @@ namespace SexShot.Dev.Editor
             GameObject impactPrefab = null,
             GameObject shellPrefab = null,
             bool ejectShells = false,
-            float muzzleFlashScale = 1f)
+            float muzzleFlashScale = 1f,
+            float recoilPitch = 1f,
+            float recoilYaw = 0.35f)
         {
             var asset = AssetDatabase.LoadAssetAtPath<WeaponDefinition>(path);
             if (asset == null)
@@ -446,6 +454,8 @@ namespace SexShot.Dev.Editor
             so.FindProperty("_impactPrefab").objectReferenceValue = impactPrefab;
             so.FindProperty("_shellPrefab").objectReferenceValue = shellPrefab;
             so.FindProperty("_ejectShells").boolValue = ejectShells;
+            so.FindProperty("_recoilPitch").floatValue = recoilPitch;
+            so.FindProperty("_recoilYaw").floatValue = recoilYaw;
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(asset);
             return asset;

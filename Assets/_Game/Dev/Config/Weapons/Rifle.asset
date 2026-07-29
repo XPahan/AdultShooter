@@ -29,3 +29,5 @@ MonoBehaviour:
   _impactPrefab: {fileID: 1879272669879180, guid: 7bef351ddc33ae044b671a7664396a20, type: 3}
   _shellPrefab: {fileID: 6899692634302251117, guid: 7f61060a0388460428b38926c0f0de2c, type: 3}
   _ejectShells: 1
+  _recoilPitch: 0.45
+  _recoilYaw: 0.2
